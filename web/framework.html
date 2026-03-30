@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nudge Framework — AI-Assisted Development That Actually Works</title>
+<meta name="description" content="A strict, human-in-the-loop methodology for building software with LLMs. Stop letting AI hallucinate your architecture. Token efficiency is the foundation of reliable AI reasoning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+/* Framework-specific styles */
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 8rem 5% 5rem; position: relative; overflow: hidden; }
+.hero-grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px); background-size: 60px 60px; mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black, transparent); }
+.hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2.5rem; }
+.hero-eyebrow { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+.hero-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); animation: pulse 2s infinite; }
+
+.pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 2.5rem; }
+.pillar { padding: 2.5rem 2rem; background: var(--bg2); transition: background 0.3s; }
+.pillar:hover { background: var(--bg3); }
+.pillar-icon { font-family: var(--mono); font-size: 1.5rem; color: var(--amber); margin-bottom: 1.2rem; }
+.pillar h3 { margin-bottom: 0.75rem; font-size: 1.1rem; }
+.pillar p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+
+.stages-section { background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.prompt-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 2.5rem; }
+.prompt-card { background: var(--bg2); transition: background 0.2s; }
+.prompt-card:hover { background: var(--bg3); }
+.prompt-card-head { padding: 1.5rem 1.5rem 1rem; border-bottom: 1px solid var(--border); }
+.prompt-card-num { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+.prompt-card-name { font-family: var(--serif); font-size: 1.25rem; margin-bottom: 0.3rem; }
+.prompt-card-role { font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.65; margin-bottom: 0.75rem; }
+.prompt-card-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.6; }
+.prompt-card-io { display: flex; flex-direction: column; gap: 4px; margin: 1rem 0 0; }
+.io-row { font-size: 0.76rem; display: flex; gap: 6px; align-items: flex-start; }
+.io-badge { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 1px 5px; border-radius: 2px; flex-shrink: 0; margin-top: 2px; }
+.io-in { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.io-out { background: rgba(16,185,129,0.12); color: var(--green); }
+.io-text { color: var(--muted); }
+.prompt-body { padding: 1rem 1.5rem 0.5rem; }
+.prompt-box { background: var(--bg); border: 1px solid var(--border); border-radius: 4px 4px 0 0; padding: 0.9rem 1rem; font-family: var(--mono); font-size: 0.71rem; line-height: 1.65; color: var(--muted); max-height: 180px; overflow-y: auto; white-space: pre-wrap; }
+.prompt-copy-btn { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-top: none; border-radius: 0 0 4px 4px; background: transparent; color: var(--muted); font-family: var(--mono); font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+.prompt-copy-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.prompt-copy-btn.copied { background: var(--green-dim); color: var(--green); border-color: rgba(16,185,129,0.3); }
+.prompt-card-footer { padding: 0.75rem 1.5rem 1.5rem; }
+.include-toggle { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--muted); cursor: pointer; margin-bottom: 1.5rem; width: fit-content; }
+.include-toggle input { accent-color: var(--amber); cursor: pointer; }
+.rules-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem 1.5rem; margin-top: 2rem; }
+.rules-box h4 { color: var(--amber); margin-bottom: 1rem; }
+.rules-list { display: flex; flex-direction: column; gap: 6px; }
+.rule-item { display: flex; gap: 10px; font-size: 0.83rem; }
+.rule-num { font-family: var(--mono); font-size: 0.7rem; color: var(--amber); flex-shrink: 0; width: 16px; }
+.rule-text { color: var(--muted); line-height: 1.5; }
+.rule-text strong { color: var(--text); font-weight: 500; }
+
+.advanced-section { padding-top: 4rem; }
+.profile-grid { display: grid; grid-template-columns: 1fr; gap: 1px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 2rem; }
+.profile-row { display: grid; grid-template-columns: 180px 100px 1fr; gap: 0; background: var(--bg2); transition: background 0.2s; }
+.profile-row:hover { background: var(--bg3); }
+.profile-row.header { background: var(--bg3); }
+.profile-row > div { padding: 0.9rem 1.2rem; border-right: 1px solid var(--border); }
+.profile-row > div:last-child { border-right: none; }
+.profile-row.header > div { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.p-name { font-family: var(--serif); font-size: 0.95rem; }
+.p-trust { font-family: var(--mono); font-size: 0.7rem; padding: 2px 7px; border-radius: 2px; display: inline-block; }
+.p-posture { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+.t-high { background: rgba(139,92,246,0.15); color: #c084fc; }
+.t-med { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.t-low { background: rgba(16,185,129,0.12); color: var(--green); }
+.t-zero { background: rgba(245,158,11,0.12); color: var(--amber); }
+
+.heuristic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+.heuristic-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.5rem; }
+.heuristic-card h3 { font-size: 1.1rem; margin-bottom: 0.75rem; }
+.heuristic-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+.heuristic-card ul { margin-top: 0.75rem; padding: 0; }
+.heuristic-card li { font-size: 0.82rem; color: var(--muted); list-style: none; display: flex; gap: 8px; margin-bottom: 5px; line-height: 1.5; }
+.heuristic-card li::before { content: '—'; color: var(--border2); flex-shrink: 0; }
+.decision-box { margin-top: 1rem; padding: 1rem 1.2rem; background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.25); border-radius: 4px; }
+.decision-box strong { font-family: var(--mono); font-size: 0.67rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); display: block; margin-bottom: 0.4rem; }
+.decision-box p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 2rem; }
+.tool-item { padding: 1.2rem 1.4rem; background: var(--bg2); transition: background 0.2s; }
+.tool-item:hover { background: var(--bg3); }
+.tool-name { font-family: var(--mono); font-size: 0.78rem; color: var(--amber); font-weight: 600; margin-bottom: 0.5rem; }
+.tool-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+.tool-impact { font-family: var(--mono); font-size: 0.65rem; color: var(--green); margin-top: 0.5rem; }
+
+.dsl-cta { background: var(--bg2); border-top: 1px solid var(--border); }
+.dsl-cta-inner { display: flex; align-items: flex-start; justify-content: space-between; gap: 3rem; flex-wrap: wrap; }
+.dsl-cta-left { flex: 1; min-width: 300px; }
+.dsl-cta-right { flex: 1; min-width: 300px; }
+.before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 1.5rem; }
+.ba-pane { background: var(--bg); padding: 0; }
+.ba-head { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); background: var(--bg3); }
+.ba-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.ba-pre { padding: 0.9rem 1rem; font-family: var(--mono); font-size: 0.76rem; line-height: 1.65; white-space: pre-wrap; }
+
+@media (max-width: 768px) {
+  .pillars, .heuristic-grid { grid-template-columns: 1fr; }
+  .profile-row { grid-template-columns: 1fr; }
+  .before-after { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">nudge<span>DSL</span></a>
+  <div class="nav-links">
+    <span class="nav-site-label">Framework</span>
+    <a href="#start" class="active">Start here</a>
+    <a href="#advanced">Advanced</a>
+    <a href="#dsl-upgrade">nudgeDSL</a>
+    <a href="index.html">Protocol site</a>
+    <a href="https://github.com/nudge/nudgedsl" target="_blank">GitHub</a>
+  </div>
+  <a class="nav-cta" href="#start">Get the prompts</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">
+    <div class="hero-eyebrow-dot"></div>
+    <span class="badge badge-amber badge-dot">Nudge Framework v2</span>
+    <span style="font-family:var(--mono);font-size:0.72rem;color:var(--muted)">Now with nudgeDSL encoding</span>
+  </div>
+  <h1 style="max-width:820px;margin-bottom:1.5rem;">Stop letting AI<br><em style="font-style:italic;color:var(--amber)">hallucinate</em> your architecture.</h1>
+  <p class="lead" style="margin-bottom:0;">A strict, human-in-the-loop methodology for building software with LLMs. Not a tool. Not a library. A discipline — for solo developers and small teams who can't afford expensive rewrites.</p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="#start">Copy the prompts</a>
+    <a class="btn-secondary" href="#advanced">Read the playbook</a>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-label">Three principles</div>
+  <h2>The framework in<br>90 seconds.</h2>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="pillar-icon">01</div>
+      <h3>Token efficiency = quality</h3>
+      <p>When context is tight and relevant, the AI reasons better. Noise degrades output quality and increases hallucinations. Saving tokens is not an optimisation. It is the foundation of reliable AI reasoning.</p>
+      <p style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted);">This constraint — treating tokens as a precious resource — produces better software than unlimited context. The discipline is the feature.</p>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">02</div>
+      <h3>You are the orchestrator</h3>
+      <p>The AI is an execution engine, not a driver. You architect the blueprint and define what "good" looks like. The AI executes exactly what you scoped — no more, no less.</p>
+      <p style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted);">Autonomy is earned per stage, not granted by default. The Architecture Critic gets high autonomy. The Implementer gets low. This is intentional.</p>
+    </div>
+    <div class="pillar">
+      <div class="pillar-icon">03</div>
+      <h3>Context sharding</h3>
+      <p>One monolithic prompt doesn't scale. Nudge uses targeted shards — you feed the AI exactly what it needs for the current task, nothing from three sessions ago.</p>
+      <p style="margin-top:0.75rem;font-size:0.82rem;color:var(--muted);">A shard is the quantum of work. A session is the quantum of context. Keep them aligned and the AI stays sharp throughout the project.</p>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:2rem;">
+    <strong>Key insight</strong>
+    <p>Format follows consumer. AI-consumed outputs are telegraphic. Human-consumed outputs are scannable. The best outputs are both — that's what nudgeDSL achieves, and what the handover format already approximates.</p>
+  </div>
+</section>
+
+<!-- PROMPTS -->
+<section class="stages-section" id="start">
+  <div class="section-label">The framework — start here</div>
+  <h2>Four stages.<br>Four roles. One methodology.</h2>
+  <p class="lead">Copy a prompt, paste it into any AI, follow the rules. No tooling required. Run stages in order — each one's output is the next one's input.</p>
+
+  <label class="include-toggle">
+    <input type="checkbox" id="includeRules" checked>
+    Prepend the 7 Nudge Rules to copied prompts
+  </label>
+
+  <div class="prompt-cards">
+
+    <div class="prompt-card">
+      <div class="prompt-card-head" style="border-top:3px solid #c084fc;">
+        <div class="prompt-card-num" style="color:#c084fc;">Stage 01 · Discovery</div>
+        <div class="prompt-card-name">Blueprint</div>
+        <div class="prompt-card-role" style="color:#c084fc;">Architecture Critic · High autonomy</div>
+        <div class="prompt-card-desc">Stress-test the idea. Challenge every assumption. The AI is adversarial here — that's the point. You want it to find the holes before you build around them.</div>
+        <div class="prompt-card-io">
+          <div class="io-row"><span class="io-badge io-in">in</span><span class="io-text">Raw concept, target audience, goals</span></div>
+          <div class="io-row"><span class="io-badge io-out">out</span><span class="io-text">context.md · blueprint.md · tasklist.md · index.md</span></div>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-box" id="p-blueprint">You are running a Nudge Discovery Session. Your role: Architecture Critic.
+
+Your job is to stress-test this idea and produce four documents:
+1. context.md — project context, stack, non-negotiable constraints
+2. blueprint.md — architecture, data model, flagged risks
+3. tasklist.md — ordered build sequence by dependency graph
+4. index.md — master routing table tracking all tasks and shards
+
+Start by asking me 10 sharpening questions about scope, constraints, and priorities. After my answers, produce the four documents.
+
+As Architecture Critic: find the three weakest points. Identify missing error paths. Challenge every assumption. Flag risks explicitly. Your output is a blueprint with problems visible, not hidden.</div>
+        <button class="prompt-copy-btn" onclick="doCopy('blueprint',this)">Copy prompt</button>
+      </div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-card-head" style="border-top:3px solid #60a5fa;">
+        <div class="prompt-card-num" style="color:#60a5fa;">Stage 02 · Specification</div>
+        <div class="prompt-card-name">Shard</div>
+        <div class="prompt-card-role" style="color:#60a5fa;">Specification Writer · Medium autonomy</div>
+        <div class="prompt-card-desc">Turn the tasklist into implementable specs. Each shard is one deliverable — not a design document, not a wishlist. If it can't be verified, it's not a shard.</div>
+        <div class="prompt-card-io">
+          <div class="io-row"><span class="io-badge io-in">in</span><span class="io-text">context.md · blueprint.md · tasklist.md</span></div>
+          <div class="io-row"><span class="io-badge io-out">out</span><span class="io-text">shard-{n}.md files · index.md updated</span></div>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-box" id="p-shard">You are a Nudge Specification Writer producing Shard files.
+
+I will give you context.md, blueprint.md, and the tasklist.
+Process the entire tasklist into shard-{n}.md files. For each shard define:
+- Exact deliverable (what exists that did not exist before)
+- Files in scope (read only these — list exact paths)
+- Files out of scope (do not touch these)
+- Constraints and Must Includes
+- Acceptance criteria (binary — pass or fail)
+- Edge cases to handle
+
+Rules:
+- Do not write implementation code in shards
+- If anything is ambiguous, list the ambiguity explicitly — do not guess
+- Acceptance criteria must be verifiable, not subjective
+- Note what to update in index.md after each task completes</div>
+        <button class="prompt-copy-btn" onclick="doCopy('shard',this)">Copy prompt</button>
+      </div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-card-head" style="border-top:3px solid #10b981;">
+        <div class="prompt-card-num" style="color:#10b981;">Stage 03 · Development</div>
+        <div class="prompt-card-name">Execute</div>
+        <div class="prompt-card-role" style="color:#10b981;">Disciplined Implementer · Low autonomy</div>
+        <div class="prompt-card-desc">Write exactly what the shard specifies. No hallucinated features. No refactoring adjacent code. Ambiguity means stop — not guess. This is the lowest-autonomy stage.</div>
+        <div class="prompt-card-io">
+          <div class="io-row"><span class="io-badge io-in">in</span><span class="io-text">context.md · index.md · shard-{n}.md</span></div>
+          <div class="io-row"><span class="io-badge io-out">out</span><span class="io-text">deliverable code · handover.md · index.md updated</span></div>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-box" id="p-execute">You are a Nudge Executor. Follow the shard specification exactly.
+
+Rules:
+- Do not add anything not in the shard
+- Do not skip any requirement in the shard
+- Do not modify interfaces outside the shard scope
+- Do not refactor adjacent code not mentioned in the shard
+- If the shard is ambiguous on any point, STOP and report — never guess
+- GUARDRAIL: Output code cleanly. Do not embed Handover notes inside the deliverable file
+- GUARDRAIL: If the deliverable is too large for one response, STOP and ask me to split the shard
+
+After completing the implementation, output separately:
+1. Continuous Improvement — what was unclear, what slowed you down
+2. Handover — what was completed, decisions locked, what the next slice needs, any blockers</div>
+        <button class="prompt-copy-btn" onclick="doCopy('execute',this)">Copy prompt</button>
+      </div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-card-head" style="border-top:3px solid #f59e0b;">
+        <div class="prompt-card-num" style="color:#f59e0b;">Stage 04 · Verification</div>
+        <div class="prompt-card-name">Review</div>
+        <div class="prompt-card-role" style="color:#f59e0b;">QA Auditor · Zero autonomy</div>
+        <div class="prompt-card-desc">Validate the output against the shard. Do not improve. Do not suggest. Only verify. The verdict is binding and must be one of three options — no middle ground.</div>
+        <div class="prompt-card-io">
+          <div class="io-row"><span class="io-badge io-in">in</span><span class="io-text">shard-{n}.md · deliverable · handover.md</span></div>
+          <div class="io-row"><span class="io-badge io-out">out</span><span class="io-text">validation.md — READY / NEEDS REVISION / BLOCKED</span></div>
+        </div>
+      </div>
+      <div class="prompt-body">
+        <div class="prompt-box" id="p-review">You are a Nudge Reviewer. I will give you the shard, the deliverable, and the handover.
+
+Produce a validation.md checking:
+1. Spec compliance — is every acceptance criterion met? (cite each one)
+2. Exclusions — did the implementation touch anything out of scope?
+3. Fact check — does the code actually do what it claims?
+4. Regression risks — what existing functionality could this break?
+5. Edge cases — which edge cases from the shard were not handled?
+
+Do not suggest improvements. Do not refactor. Only verify against the shard.
+
+Final verdict must be exactly one of:
+- READY
+- NEEDS REVISION — list every required fix before this can pass
+- BLOCKED — list what is missing before this can even be reviewed</div>
+        <button class="prompt-copy-btn" onclick="doCopy('review',this)">Copy prompt</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="rules-box">
+    <h4>The 7 Nudge rules — injected with every prompt when toggle is on</h4>
+    <div class="rules-list">
+      <div class="rule-item"><span class="rule-num">1</span><span class="rule-text"><strong>One task per conversation.</strong> We do not carry dead history into new phases.</span></div>
+      <div class="rule-item"><span class="rule-num">2</span><span class="rule-text"><strong>Read the handover.</strong> Do not ask me to repeat decisions already made.</span></div>
+      <div class="rule-item"><span class="rule-num">3</span><span class="rule-text"><strong>Brief before execution.</strong> Never execute without a shard.</span></div>
+      <div class="rule-item"><span class="rule-num">4</span><span class="rule-text"><strong>Review before done.</strong> Check every output against the shard.</span></div>
+      <div class="rule-item"><span class="rule-num">5</span><span class="rule-text"><strong>Two attempts max.</strong> If you miss twice, the shard needs rewriting — not another attempt.</span></div>
+      <div class="rule-item"><span class="rule-num">6</span><span class="rule-text"><strong>Only what's needed.</strong> I will supply the relevant context. Do not guess what's missing.</span></div>
+      <div class="rule-item"><span class="rule-num">7</span><span class="rule-text"><strong>Source of truth.</strong> context.md and index.md are locked during execution.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ADVANCED -->
+<section id="advanced">
+  <div class="section-label">Advanced playbook</div>
+  <h2>The patterns that<br>compound over time.</h2>
+  <p class="lead">Once you've run a few sessions with the prompts above, these patterns will save you hours. Each one exists because someone paid for the lesson in wasted tokens.</p>
+
+  <div class="advanced-section">
+    <h4 style="margin-bottom:1.2rem;">5 AI role profiles — full specification</h4>
+    <div class="profile-grid">
+      <div class="profile-row header">
+        <div>Role</div><div>Trust</div><div>Posture</div>
+      </div>
+      <div class="profile-row">
+        <div><div class="p-name">Architecture Critic</div><div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:3px;">Blueprint stage</div></div>
+        <div><span class="p-trust t-high">High</span></div>
+        <div><div class="p-posture">Adversarial. Breaks the design before you build it. Finds weak points, missing error paths, challenges assumptions. Expected to disagree with the orchestrator. Context: full project concept, no code.</div></div>
+      </div>
+      <div class="profile-row">
+        <div><div class="p-name">Dependency Analyst</div><div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:3px;">Task list stage</div></div>
+        <div><span class="p-trust t-med">Medium</span></div>
+        <div><div class="p-posture">Analytical. Sequences tasks by dependency graph. Flags hidden coupling and circular dependencies. Free to reorganize the task order. Context: blueprint, schema, existing skeletons.</div></div>
+      </div>
+      <div class="profile-row">
+        <div><div class="p-name">Specification Writer</div><div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:3px;">Shard stage</div></div>
+        <div><span class="p-trust t-med">Medium</span></div>
+        <div><div class="p-posture">Precise. Produces function signatures, data shapes, error cases, acceptance criteria. No implementation code. Stops if the tasklist entry is ambiguous. Context: blueprint, tasklist, relevant code skeletons.</div></div>
+      </div>
+      <div class="profile-row">
+        <div><div class="p-name">Disciplined Implementer</div><div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:3px;">Development stage</div></div>
+        <div><span class="p-trust t-low">Low</span></div>
+        <div><div class="p-posture">Compliant. Executes against shards. No architectural decisions. No refactoring adjacent code. Stops if spec is ambiguous — never guesses. Context: shard, files being edited, skeletons for others.</div></div>
+      </div>
+      <div class="profile-row">
+        <div><div class="p-name">QA Auditor</div><div style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:3px;">Verification stage</div></div>
+        <div><span class="p-trust t-zero">Zero</span></div>
+        <div><div class="p-posture">Evaluative. Reviews deliverable against shard spec only. Identifies untested edge cases. Flags out-of-scope changes. Does not suggest improvements. Context: git diff, shard, test results.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="advanced-section">
+    <h4 style="margin-bottom:1.2rem;">Session management — the two hardest decisions</h4>
+    <div class="heuristic-grid">
+      <div class="heuristic-card">
+        <h3>When to restart vs continue</h3>
+        <p>Do not restart after every phase by default. But carrying dead context is worse than restarting. The decision is structural, not intuitive.</p>
+        <div class="decision-box">
+          <strong>The 60% rule</strong>
+          <p>Does the next slice share more than ~60% of its file surface with the current slice? If YES → continue the session. If NO → generate a handover and restart with a clean context.</p>
+        </div>
+        <ul style="margin-top:1rem;">
+          <li>Same subsystem, touching same files → continue</li>
+          <li>Different files, different concern → restart</li>
+          <li>Frontend after backend → almost always restart</li>
+          <li>Test after implementation → usually continue</li>
+        </ul>
+      </div>
+      <div class="heuristic-card">
+        <h3>The handover format</h3>
+        <p>Before stopping, the AI generates a handover using strict Context Minification. No conversational filler. This is everything the next session needs.</p>
+        <div class="code-block" style="margin-top:1rem;">
+          <div class="code-block-bar"><span class="code-block-label">.handover.md — required fields</span></div>
+          <pre style="padding:0.8rem 1rem;font-size:0.74rem;line-height:1.65;color:var(--muted);">slice: auth-engine-v1
+status: complete
+files_modified: [auth.go, auth_test.go]
+files_created: [auth_types.go]
+decisions_locked:
+  - Using JWT, not sessions
+  - Refresh tokens stored in Redis
+next_slice_needs:
+  - contracts.yaml
+  - auth_types.go skeleton</pre>
+        </div>
+      </div>
+      <div class="heuristic-card">
+        <h3>Shard freshness rule</h3>
+        <p>A shard is stale when the last commit to its subsystem is newer than the shard file. Stale shards produce wrong implementations.</p>
+        <ul>
+          <li>Shard generation is an output of each phase — not a static artifact</li>
+          <li>When the pipeline order is respected (backend → frontend), shards are fresh by construction</li>
+          <li>Before any phase: verify the shard is fresher than the last relevant commit</li>
+          <li>If stale: regenerate before executing — never execute against a stale shard</li>
+        </ul>
+      </div>
+      <div class="heuristic-card">
+        <h3>System prompt hygiene</h3>
+        <p>Your core rules file (AI_RULES.md or CLAUDE.md) is injected every turn. Every token in it competes with your actual task context.</p>
+        <div class="decision-box">
+          <strong>Hard limit: 40 lines</strong>
+          <p>Put phase-specific rules in the phase shard — not the global rules file. The rules file is the operating manual. The shard is the spec.</p>
+        </div>
+        <ul style="margin-top:1rem;">
+          <li>Global rules: workflow mechanics, hard constraints</li>
+          <li>Shard rules: phase-specific instructions</li>
+          <li>Never: project background in the global rules file</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="advanced-section">
+    <h4 style="margin-bottom:0.5rem;">Permanent tooling layer — install once, use everywhere</h4>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.7;">AIs waste massive context running <code>ls</code> or reading 1000-line files to find one function. Give the AI a map. These scripts are project-agnostic — copy them once.</p>
+    <div class="tools-grid">
+      <div class="tool-item">
+        <div class="tool-name">pre_session.ps1</div>
+        <div class="tool-desc">Run before every session. Generates session_state.txt — active phases, existing files, stub locations. The AI never scans directories.</div>
+        <div class="tool-impact">eliminates: ls, find, dir</div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-name">update_structure.py</div>
+        <div class="tool-desc">Maps every function/class to its exact line number in structure_map.txt. One targeted read replaces seven chunked file reads.</div>
+        <div class="tool-impact">eliminates: full-file reads for navigation</div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-name">find_symbol.ps1</div>
+        <div class="tool-desc">Finds a function and returns the matched line + 2 lines of context. The sniper — replaces 3000-token full-file reads entirely.</div>
+        <div class="tool-impact">eliminates: full-file reads for edits</div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-name">run_task.ps1</div>
+        <div class="tool-desc">Wraps build/test commands. Prints "OK" on success. On failure, writes only the first 20 error lines to .last_error.txt. AI reads it only when needed.</div>
+        <div class="tool-impact">eliminates: verbose test output in context</div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-name">get_skeleton</div>
+        <div class="tool-desc">Tree-sitter powered. Outputs class names, function signatures, prop types — a lightweight dependency graph without reading file content.</div>
+        <div class="tool-impact">eliminates: full-file reads for structure</div>
+      </div>
+      <div class="tool-item">
+        <div class="tool-name">read_anchor</div>
+        <div class="tool-desc">Wraps logic blocks in @ANCHOR-START comments. Fetches exact blocks. Add @DEPENDS annotations for zero-read dependency maps.</div>
+        <div class="tool-impact">eliminates: context searches for logic blocks</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:1.5rem;">
+      <strong>Rule</strong>
+      <p>The AI should never use raw <code>cat</code>, <code>ls</code>, or <code>grep</code>. Every file navigation goes through one of these wrappers. Your most expensive tokens should never be spent reading code or searching directories.</p>
+    </div>
+  </div>
+</section>
+
+<!-- DSL CTA -->
+<section class="dsl-cta" id="dsl-upgrade">
+  <div class="section-label">The natural next step</div>
+  <h2>nudgeDSL: the framework<br>made executable.</h2>
+  <p class="lead">The Nudge Framework already pushes you toward telegraphic, structured outputs. nudgeDSL completes that journey — your orchestration documents become machine-executable without losing human readability.</p>
+
+  <div class="before-after">
+    <div class="ba-pane">
+      <div class="ba-head"><span class="ba-label" style="color:var(--muted);">Today — your .handover.md</span></div>
+      <div class="ba-pre" style="color:var(--muted);">slice: crisis-engine-v1
+status: complete
+files_modified:
+  - crisis_engine.go
+  - crisis_test.go
+files_created:
+  - crisis_types.go
+decisions_locked:
+  - CrisisEngine uses mutex, not channel
+  - Crisis IDs are UUIDs, not sequential
+next_slice_needs:
+  - contracts.yaml skeleton</div>
+    </div>
+    <div class="ba-pane">
+      <div class="ba-head"><span class="ba-label" style="color:var(--amber);">nudgeDSL — same intent, machine-executable</span></div>
+      <div class="ba-pre"><span class="t-atom">MARK</span>(<span class="t-str">"crisis-engine-v1"</span>, <span class="t-str">"done"</span>)
+  <span class="t-op">>></span> <span class="t-atom">MOD</span>(<span class="t-str">"crisis_engine.go"</span>)
+     <span class="t-op">//</span> <span class="t-atom">MOD</span>(<span class="t-str">"crisis_test.go"</span>)
+  <span class="t-op">>></span> <span class="t-atom">CREATE</span>(<span class="t-str">"crisis_types.go"</span>)
+  <span class="t-op">>></span> <span class="t-atom">NOTE</span>(<span class="t-str">"mutex not channel"</span>)
+  <span class="t-op">>></span> <span class="t-atom">NOTE</span>(<span class="t-str">"crisis-ids are UUIDs"</span>)
+  <span class="t-op">>></span> <span class="t-atom">NEXT</span>(<span class="t-str">"next-slice"</span>)</div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:1rem;margin-top:2rem;flex-wrap:wrap;">
+    <a class="btn-primary" href="index.html#playground">Try the playground</a>
+    <a class="btn-secondary" href="index.html">Read the protocol</a>
+    <a class="btn-secondary" href="registries.html">Browse registries</a>
+  </div>
+</section>
+
+<footer>
+  <div>Nudge Framework v2 · <a href="index.html">nudgeDSL protocol</a> · <a href="https://github.com/nudge/nudgedsl" target="_blank">GitHub</a></div>
+  <div>Structure beats hope.</div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+const NUDGE_RULES_TEXT = `# Nudge — AI Session Framework
+I follow the Nudge methodology. Read this before we start.
+
+## 7 Nudge Rules
+1. ONE TASK PER CONVERSATION. We do not carry dead history into new phases.
+2. Read the HANDOVER. Do not ask me to repeat decisions already made.
+3. BRIEF BEFORE EXECUTION. Never execute without a shard.
+4. REVIEW BEFORE DONE. Check against the shard.
+5. TWO ATTEMPTS MAX. If you miss twice, the shard needs rewriting.
+6. ONLY WHAT'S NEEDED. I will supply the relevant context. Do not guess.
+7. SOURCE OF TRUTH. context.md and index.md are locked.
+---
+`;
+
+function doCopy(id, btn) {
+  const text = document.getElementById('p-' + id).innerText;
+  const include = document.getElementById('includeRules').checked;
+  copyText(include ? NUDGE_RULES_TEXT + '\n' + text : text, btn);
+}
+</script>
+</body>
+</html>

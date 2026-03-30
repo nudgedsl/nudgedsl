@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nudgeDSL Specification v0.1.0</title>
+<meta name="description" content="The nudgeDSL specification — grammar, operators, atom registry format, error taxonomy, and worked examples. The source of truth for all implementations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.spec-layout { display: grid; grid-template-columns: 240px 1fr; gap: 0; min-height: 100vh; padding-top: 60px; }
+.spec-nav { position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; background: var(--bg2); border-right: 1px solid var(--border); padding: 2rem 0; }
+.spec-nav-title { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 0 1.5rem; margin-bottom: 1rem; }
+.spec-nav a { display: block; padding: 0.4rem 1.5rem; font-size: 0.82rem; color: var(--muted); text-decoration: none; transition: all 0.15s; border-left: 2px solid transparent; }
+.spec-nav a:hover { color: var(--text); }
+.spec-nav a.active { color: var(--amber); border-left-color: var(--amber); background: var(--amber-dim); }
+.spec-nav .nav-group { margin-bottom: 1.5rem; }
+.spec-nav .nav-group-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding: 0 1.5rem; margin-bottom: 0.3rem; opacity: 0.5; }
+.spec-content { padding: 3rem 4rem; max-width: 860px; }
+.spec-content section { padding: 0; margin-bottom: 4rem; scroll-margin-top: 80px; }
+.spec-content h2 { font-size: 1.8rem; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+.spec-content h3 { font-family: var(--mono); font-size: 0.9rem; font-weight: 500; color: var(--amber); margin: 2rem 0 0.75rem; letter-spacing: 0.03em; }
+.spec-content p { font-size: 0.9rem; color: var(--muted); line-height: 1.8; margin-bottom: 1rem; }
+.spec-content ul, .spec-content ol { padding-left: 1.5rem; margin-bottom: 1rem; }
+.spec-content li { font-size: 0.88rem; color: var(--muted); line-height: 1.7; margin-bottom: 4px; }
+.spec-content strong { color: var(--text); font-weight: 500; }
+.spec-header { padding: 3rem 4rem 2rem; border-bottom: 1px solid var(--border); background: var(--bg2); }
+.spec-meta { display: flex; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.spec-meta-item { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+.spec-meta-item span { color: var(--amber); }
+
+/* SPEC TABLES */
+.spec-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.82rem; }
+.spec-table th { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); }
+.spec-table td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+.spec-table tr:last-child td { border-bottom: none; }
+.spec-table tr:hover td { background: var(--bg3); }
+.spec-table code { font-size: 0.8em; }
+
+/* OPERATOR DISPLAY */
+.op-symbol { font-family: var(--mono); font-size: 1.1rem; color: var(--teal); font-weight: 700; }
+.err-code { font-family: var(--mono); font-size: 0.78rem; color: var(--amber); background: var(--amber-dim); padding: 1px 6px; border-radius: 3px; }
+
+/* EBNF */
+.ebnf { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem 1.4rem; font-family: var(--mono); font-size: 0.78rem; line-height: 1.8; color: var(--text); margin: 1.5rem 0; overflow-x: auto; }
+.ebnf .rule-name { color: var(--amber); }
+.ebnf .rule-op { color: var(--teal); }
+.ebnf .rule-lit { color: #a5d6a7; }
+.ebnf .rule-cls { color: #ce93d8; }
+.ebnf .rule-comment { color: var(--muted); font-style: italic; }
+
+/* EXAMPLE BLOCKS */
+.example { margin: 1.5rem 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.example-head { padding: 0.5rem 1rem; background: var(--bg3); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.example-num { font-family: var(--mono); font-size: 0.65rem; color: var(--amber); letter-spacing: 0.08em; }
+.example-desc { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+.example-code { padding: 1rem 1.2rem; background: var(--bg); font-family: var(--mono); font-size: 0.8rem; line-height: 1.7; }
+.example-try { padding: 0.4rem 0.8rem; font-family: var(--mono); font-size: 0.68rem; border-radius: 3px; cursor: pointer; transition: all 0.15s; border: 1px solid var(--border2); background: transparent; color: var(--muted); }
+.example-try:hover { border-color: var(--amber); color: var(--amber); }
+
+/* VERSION TAG */
+.version-tag { font-family: var(--mono); font-size: 0.72rem; background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); padding: 2px 8px; border-radius: 3px; }
+
+@media (max-width: 900px) {
+  .spec-layout { grid-template-columns: 1fr; }
+  .spec-nav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+  .spec-content { padding: 2rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">nudge<span>DSL</span></a>
+  <div class="nav-links">
+    <span class="nav-site-label">Spec</span>
+    <a href="index.html">Protocol</a>
+    <a href="framework.html">Framework</a>
+    <a href="registries.html">Registries</a>
+    <a href="https://github.com/nudge/nudgedsl/blob/main/spec/nudgeDSL-spec-v0.1.md" target="_blank">Raw .md</a>
+  </div>
+  <a class="btn-sm primary" href="https://github.com/nudge/nudgedsl" target="_blank">GitHub</a>
+</nav>
+
+<div class="spec-layout">
+
+  <!-- SIDEBAR NAV -->
+  <nav class="spec-nav">
+    <div class="nav-group">
+      <div class="spec-nav-title">nudgeDSL spec</div>
+      <div class="nav-group-label">Overview</div>
+      <a href="#s1">1. What nudgeDSL is</a>
+      <a href="#s2">2. Core concepts</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Grammar</div>
+      <a href="#s3">3. Operator table</a>
+      <a href="#s4">4. EBNF grammar</a>
+      <a href="#s5">5. Parallel failure modes</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Data</div>
+      <a href="#s6">6. JSON AST format</a>
+      <a href="#s7">7. Atom registry</a>
+      <a href="#s15">15. Registry system</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Pipeline</div>
+      <a href="#s8">8. Validation pipeline</a>
+      <a href="#s9">9. Error taxonomy</a>
+      <a href="#s10">10. Auto-generated prompt</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Reference</div>
+      <a href="#s11">11. Worked examples</a>
+      <a href="#s12">12. Simulator / CLI</a>
+      <a href="#s13">13. Versioning</a>
+      <a href="#s14">14. Out of scope v0.1</a>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <div>
+    <div class="spec-header">
+      <span class="version-tag">v0.1.0</span>
+      <h1 style="font-size:2rem;margin-top:1rem;margin-bottom:0.5rem;">nudgeDSL Specification</h1>
+      <div class="spec-meta">
+        <div class="spec-meta-item">Status: <span>Draft — Pre-implementation</span></div>
+        <div class="spec-meta-item">Purpose: <span>Agent context injection · Grammar source of truth · Contributor reference</span></div>
+        <div class="spec-meta-item">Canonical: <span><a href="https://github.com/nudge/nudgedsl/blob/main/spec/nudgeDSL-spec-v0.1.md" target="_blank" style="color:var(--amber);">nudgeDSL-spec-v0.1.md</a></span></div>
+      </div>
+    </div>
+
+    <div class="spec-content">
+
+      <section id="s1">
+        <h2>1. What nudgeDSL is</h2>
+        <p>nudgeDSL is a token-dense, human-readable Domain Specific Language for encoding executable intent from LLMs to multi-language backends (Go, Python, Dart).</p>
+        <p>An agent outputs a nudgeDSL string. A universal parser converts it to a JSON AST. Language-native executors read the AST and run the corresponding functions.</p>
+        <p><strong>nudgeDSL does not:</strong> execute code directly, make network calls, or carry state between turns.</p>
+        <div class="callout">
+          <strong>Key principle</strong>
+          <p>Format follows consumer. AI-consumed outputs are telegraphic. Human-consumed outputs are scannable. nudgeDSL is both at the same time.</p>
+        </div>
+      </section>
+
+      <section id="s2">
+        <h2>2. Core concepts</h2>
+        <h3>Atom</h3>
+        <p>An <strong>Atom</strong> is a short-code (1–3 uppercase characters) registered by the developer and mapped to a backend function. Atoms are always uppercase. The atom registry is injected into the agent context at runtime.</p>
+
+        <h3>REGISTRY — the special declaration atom</h3>
+        <p><code>REGISTRY</code> is a built-in atom that declares which domain registry a document expects. It must appear as the first expression if present. If the loaded registry does not match, the parser returns a <code>RegistryError</code> before evaluating any other atom.</p>
+        <div class="example">
+          <div class="example-head"><span class="example-num">Declaration</span><span class="example-desc">must be first expression in document</span></div>
+          <div class="example-code"><span class="t-kw">REGISTRY</span>(<span class="t-str">"nudge-framework"</span>, version=<span class="t-str">"0.1.0"</span>)<br>&nbsp;&nbsp;<span class="t-op">>></span> <span class="t-atom">SHARD</span>(<span class="t-str">"A1"</span>, phase=<span class="t-str">"A"</span>)</div>
+        </div>
+
+        <h3>Operator</h3>
+        <p>An <strong>Operator</strong> encodes the relationship between atoms. Operators are fixed — part of the grammar, not redefinable by developers.</p>
+
+        <h3>Argument types</h3>
+        <table class="spec-table">
+          <thead><tr><th>Type</th><th>Syntax</th><th>Example</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>String</td><td><code>"value"</code></td><td><code>MARK("task-1")</code></td><td>No escaped quotes in v0.1 — use single-word identifiers or enums</td></tr>
+            <tr><td>Integer</td><td>bare number</td><td><code>MOV(3, 7)</code></td><td>May be negative</td></tr>
+            <tr><td>Float</td><td>decimal number</td><td><code>HEAL("self", 0.5)</code></td><td>May be negative</td></tr>
+            <tr><td>Boolean</td><td><code>true</code> / <code>false</code></td><td><code>LOCK(true)</code></td><td>Lowercase only</td></tr>
+            <tr><td>Null</td><td><code>null</code></td><td><code>RESET(null)</code></td><td>Lowercase only</td></tr>
+          </tbody>
+        </table>
+        <p><strong>v0.1 constraint:</strong> Strings cannot contain escaped double quotes. Design atom arguments to avoid this — use single-word identifiers or enum values where possible.</p>
+      </section>
+
+      <section id="s3">
+        <h2>3. Operator table</h2>
+        <table class="spec-table">
+          <thead><tr><th>Operator</th><th>Name</th><th>Semantics</th><th>Failure behavior</th></tr></thead>
+          <tbody>
+            <tr><td><span class="op-symbol">&gt;&gt;</span></td><td>Chain</td><td>Execute left, then right. Right does not run if left fails.</td><td>Fail-fast (default)</td></tr>
+            <tr><td><span class="op-symbol">|</span></td><td>Fallback</td><td>Try left. If left fails, try right.</td><td>Best-effort per branch</td></tr>
+            <tr><td><span class="op-symbol">//</span></td><td>Parallel</td><td>Execute left and right concurrently.</td><td>Configurable (see §5)</td></tr>
+            <tr><td><span class="op-symbol">**N</span></td><td>Amplify</td><td>Repeat the preceding atom N times sequentially.</td><td>Fail-fast</td></tr>
+          </tbody>
+        </table>
+        <h3>Precedence (high to low)</h3>
+        <ol>
+          <li><code>**</code> — Amplify — binds tightest, applies to immediately preceding atom only</li>
+          <li><code>//</code> — Parallel</li>
+          <li><code>&gt;&gt;</code> — Chain</li>
+          <li><code>|</code> — Fallback — binds loosest</li>
+        </ol>
+        <p>Use parentheses to override precedence. <code>A() // B() ** 3</code> is parsed as <code>A() // (B() ** 3)</code> — amplify binds before parallel.</p>
+      </section>
+
+      <section id="s4">
+        <h2>4. EBNF grammar</h2>
+        <div class="ebnf"><span class="rule-name">program</span>     <span class="rule-op">::=</span> <span class="rule-name">expression</span> EOF
+<span class="rule-name">expression</span>  <span class="rule-op">::=</span> <span class="rule-name">fallback</span>
+<span class="rule-name">fallback</span>    <span class="rule-op">::=</span> <span class="rule-name">parallel</span> ( <span class="rule-lit">"|"</span> <span class="rule-name">parallel</span> )*
+<span class="rule-name">parallel</span>    <span class="rule-op">::=</span> <span class="rule-name">chain</span> ( <span class="rule-lit">"//"</span> <span class="rule-name">chain</span> )*
+<span class="rule-name">chain</span>       <span class="rule-op">::=</span> <span class="rule-name">amplify</span> ( <span class="rule-lit">">>"</span> <span class="rule-name">amplify</span> )*
+<span class="rule-name">amplify</span>     <span class="rule-op">::=</span> <span class="rule-name">primary</span> ( <span class="rule-lit">"**"</span> INTEGER )?
+<span class="rule-name">primary</span>     <span class="rule-op">::=</span> <span class="rule-name">atom_call</span> | <span class="rule-lit">"("</span> <span class="rule-name">expression</span> <span class="rule-lit">")"</span>
+<span class="rule-name">atom_call</span>   <span class="rule-op">::=</span> ATOM <span class="rule-lit">"("</span> <span class="rule-name">arg_list</span>? <span class="rule-lit">")"</span>
+<span class="rule-name">arg_list</span>    <span class="rule-op">::=</span> <span class="rule-name">arg</span> ( <span class="rule-lit">","</span> <span class="rule-name">arg</span> )*
+<span class="rule-name">arg</span>         <span class="rule-op">::=</span> STRING | INTEGER | FLOAT | BOOLEAN | NULL
+<span class="rule-cls">ATOM</span>        <span class="rule-op">::=</span> <span class="rule-lit">[A-Z][A-Z0-9]{0,2}</span>
+<span class="rule-cls">STRING</span>      <span class="rule-op">::=</span> <span class="rule-lit">'"' [^"]* '"'</span>
+<span class="rule-cls">INTEGER</span>     <span class="rule-op">::=</span> <span class="rule-lit">"-"? [0-9]+</span>
+<span class="rule-cls">FLOAT</span>       <span class="rule-op">::=</span> <span class="rule-lit">"-"? [0-9]+ "." [0-9]+</span>
+<span class="rule-cls">BOOLEAN</span>     <span class="rule-op">::=</span> <span class="rule-lit">"true" | "false"</span>
+<span class="rule-cls">NULL</span>        <span class="rule-op">::=</span> <span class="rule-lit">"null"</span>
+<span class="rule-cls">EOF</span>         <span class="rule-op">::=</span> <span class="rule-comment">end of input</span></div>
+      </section>
+
+      <section id="s5">
+        <h2>5. Parallel failure modes</h2>
+        <p>The <code>//</code> operator supports three configurable failure modes. Set at executor registration. Default is <strong>fail-fast</strong>.</p>
+        <h3>fail-fast (default)</h3>
+        <p>If any branch fails, all remaining branches are aborted immediately. No partial state is applied.</p>
+        <h3>best-effort</h3>
+        <p>All branches execute regardless of individual failures. Errors are collected and returned after all branches complete. Partial state is applied.</p>
+        <h3>compensating</h3>
+        <p>Each atom may declare a rollback atom in the registry. If a branch fails, the executor calls the rollback atom of each already-completed branch. The executor automatically passes the <strong>exact same arguments</strong> from the forward atom to its rollback atom.</p>
+        <div class="callout" style="margin-top:1.5rem;">
+          <strong>Rollback signature rule</strong>
+          <p>Rollback atoms must accept the same argument signature as their forward atom. This is enforced at registry load time, not execution time. A misconfigured rollback that surfaces during a compensating transaction is worse than a startup error.</p>
+        </div>
+      </section>
+
+      <section id="s6">
+        <h2>6. JSON AST format</h2>
+        <p>The parser always outputs this structure. Executors consume the AST — never the raw string.</p>
+        <div class="code-block">
+          <div class="code-block-bar"><span class="code-block-label">AST — MARK("task-1", "done") >> NOTIFY("ops")</span></div>
+          <pre style="padding:1rem 1.2rem;font-size:0.78rem;line-height:1.7;overflow-x:auto;">{
+  "version": "0.1.0",
+  "root": {
+    "type": "chain",
+    "nodes": [
+      {
+        "type": "call",
+        "atom": "MARK",
+        "fn": "UpdateStatus",
+        "args": [
+          { "type": "string", "value": "task-1" },
+          { "type": "string", "value": "done" }
+        ]
+      },
+      {
+        "type": "call",
+        "atom": "NOTIFY",
+        "fn": "BroadcastEvent",
+        "args": [
+          { "type": "string", "value": "ops" }
+        ]
+      }
+    ]
+  }
+}</pre>
+        </div>
+        <h3>Node types</h3>
+        <table class="spec-table">
+          <thead><tr><th>type</th><th>Fields</th></tr></thead>
+          <tbody>
+            <tr><td><code>call</code></td><td><code>atom</code>, <code>fn</code>, <code>args[]</code></td></tr>
+            <tr><td><code>chain</code></td><td><code>nodes[]</code></td></tr>
+            <tr><td><code>parallel</code></td><td><code>nodes[]</code>, <code>failure_mode</code></td></tr>
+            <tr><td><code>fallback</code></td><td><code>nodes[]</code></td></tr>
+            <tr><td><code>amplify</code></td><td><code>node</code>, <code>count</code></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="s7">
+        <h2>7. Atom registry format</h2>
+        <p>Developers register atoms before injecting context. The registry is the single source of truth for prompt generation and GBNF grammar compilation.</p>
+        <div class="code-block">
+          <div class="code-block-bar"><span class="code-block-label">atoms.json — registration schema</span></div>
+          <pre style="padding:1rem 1.2rem;font-size:0.78rem;line-height:1.7;overflow-x:auto;">{
+  "domain": "my-project",
+  "version": "0.1.0",
+  "extends": [],
+  "atoms": [
+    {
+      "atom": "MARK",
+      "fn": "UpdateStatus",
+      "description": "Transition an item to a new status.",
+      "args": [
+        { "name": "id", "type": "string" },
+        { "name": "status", "type": "string",
+          "enum": ["pending", "done", "skipped", "error"] }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "HEAL",
+      "fn": "HealUnit",
+      "description": "Heal the target unit by a percentage of max HP.",
+      "args": [
+        { "name": "target", "type": "string",
+          "enum": ["self", "ally1", "ally2"] },
+        { "name": "amount", "type": "float",
+          "min": 0.0, "max": 1.0 }
+      ],
+      "rollback": "UNHEAL"
+    }
+  ]
+}</pre>
+        </div>
+        <h3>Arg constraint fields</h3>
+        <table class="spec-table">
+          <thead><tr><th>Field</th><th>Applies to</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><code>min</code> / <code>max</code></td><td>integer, float</td><td>Inclusive range</td></tr>
+            <tr><td><code>enum</code></td><td>string</td><td>Allowed values only</td></tr>
+            <tr><td><code>required</code></td><td>all</td><td>Defaults to true</td></tr>
+          </tbody>
+        </table>
+        <h3>Rollback signature validation</h3>
+        <p>If an atom declares a <code>rollback</code>, these checks run at registry load time:</p>
+        <ul>
+          <li>The rollback atom must exist in the same registry</li>
+          <li>The rollback atom must declare the same number of arguments as the forward atom</li>
+          <li>Each argument must have the same <code>type</code> at the same position</li>
+        </ul>
+        <p>Fail at load time, not at execution time. A misconfigured rollback that surfaces during a compensating transaction is a silent correctness hole.</p>
+      </section>
+
+      <section id="s8">
+        <h2>8. Validation pipeline</h2>
+        <p>Parsing and validation are two separate steps. A string can be syntactically valid and semantically invalid.</p>
+        <div class="code-block">
+          <div class="code-block-bar"><span class="code-block-label">two-stage pipeline</span></div>
+          <pre style="padding:1rem 1.2rem;font-size:0.78rem;line-height:1.7;color:var(--muted);">raw string
+    │
+    ▼
+[ Parser ]  ──── syntax error ──▶  ParseError
+    │
+    ▼
+  JSON AST
+    │
+    ▼
+[ Semantic Validator ]  ──── constraint violation ──▶  ValidationError
+    │
+    ▼
+[ Executor ]</pre>
+        </div>
+        <p>nudgeDSL ships a <code>DefaultValidator</code> that enforces all registry-declared constraints. Developers may replace or extend it via the <code>Validator</code> interface.</p>
+      </section>
+
+      <section id="s9">
+        <h2>9. Error taxonomy</h2>
+        <p>All errors are structured. The parser and validator never panic.</p>
+        <h3>ParseError codes</h3>
+        <table class="spec-table">
+          <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="err-code">EMPTY_INPUT</span></td><td>Input string is empty or whitespace only</td></tr>
+            <tr><td><span class="err-code">TRUNCATED_INPUT</span></td><td>Input ends mid-token — likely stream truncation</td></tr>
+            <tr><td><span class="err-code">UNEXPECTED_TOKEN</span></td><td>Token does not fit the grammar at this position</td></tr>
+            <tr><td><span class="err-code">UNTERMINATED_STRING</span></td><td>String opened with " but never closed</td></tr>
+            <tr><td><span class="err-code">MISSING_CLOSE_PAREN</span></td><td>Atom call opened but ) never found</td></tr>
+            <tr><td><span class="err-code">TRAILING_OPERATOR</span></td><td>Expression ends with an operator</td></tr>
+            <tr><td><span class="err-code">UNKNOWN_ATOM</span></td><td>Atom not found in registry or not uppercase</td></tr>
+          </tbody>
+        </table>
+        <h3>ValidationError codes</h3>
+        <table class="spec-table">
+          <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="err-code">ARG_OUT_OF_RANGE</span></td><td>Integer or float outside declared min/max</td></tr>
+            <tr><td><span class="err-code">ARG_NOT_IN_ENUM</span></td><td>String not in declared enum values</td></tr>
+            <tr><td><span class="err-code">ARG_TYPE_MISMATCH</span></td><td>Argument type doesn't match declaration</td></tr>
+            <tr><td><span class="err-code">ARG_COUNT_MISMATCH</span></td><td>Wrong number of arguments for this atom</td></tr>
+            <tr><td><span class="err-code">UNKNOWN_ATOM</span></td><td>Atom in AST absent from registry at validation time</td></tr>
+          </tbody>
+        </table>
+        <h3>RegistryError codes</h3>
+        <table class="spec-table">
+          <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+          <tbody>
+            <tr><td><span class="err-code">ROLLBACK_NOT_FOUND</span></td><td>Rollback atom declared but not present in registry</td></tr>
+            <tr><td><span class="err-code">ROLLBACK_SIGNATURE_MISMATCH</span></td><td>Arg count or type mismatch between forward and rollback</td></tr>
+            <tr><td><span class="err-code">REGISTRY_MISMATCH</span></td><td>Document REGISTRY() declaration does not match loaded registry</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="s10">
+        <h2>10. Auto-generated agent prompt</h2>
+        <p>nudgeDSL generates the system prompt injection from the atom registry. Agents receive the generated prompt — not this spec.</p>
+        <div class="code-block">
+          <div class="code-block-bar"><span class="code-block-label">generated prompt — nudge-framework registry (excerpt)</span></div>
+          <pre style="padding:1rem 1.2rem;font-size:0.76rem;line-height:1.7;color:var(--muted);">You are operating with nudgeDSL v0.1.0.
+Output ONLY valid nudgeDSL strings. No explanation, no preamble, no markdown.
+
+## Registered Atoms
+SHARD(id: string, phase: string)  — Open a shard context.
+ACCEPT(criterion: string)  — Add acceptance criterion.
+MARK(id: string, status: string)  — Transition item status.
+NOTE(text: string)  — Record decision note.
+
+## Operators
+>>   chain (sequential)
+|    fallback (try left, then right)
+//   parallel (concurrent)
+**N  amplify (repeat N times)
+
+## Constraints
+MARK.status: one of [pending, done, skipped, error, blocked]
+
+Output nudgeDSL only.</pre>
+        </div>
+      </section>
+
+      <section id="s11">
+        <h2>11. Worked examples</h2>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 1</span><span class="example-desc">single call</span><button class="example-try" onclick="tryExample(0)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">MARK</span>(<span class="t-str">"task-42"</span>, <span class="t-str">"done"</span>)</div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 2</span><span class="example-desc">chained sequence — right runs only if left succeeds</span><button class="example-try" onclick="tryExample(1)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">CREATE</span>(<span class="t-str">"report.pdf"</span>) <span class="t-op">>></span> <span class="t-atom">NOTIFY</span>(<span class="t-str">"complete"</span>)</div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 3</span><span class="example-desc">fallback — try primary, use replica if primary fails</span><button class="example-try" onclick="tryExample(2)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">FETCH</span>(<span class="t-str">"primary-db"</span>) <span class="t-op">|</span> <span class="t-atom">FETCH</span>(<span class="t-str">"replica-db"</span>)</div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 4</span><span class="example-desc">parallel — concurrent execution, failure mode from executor config</span><button class="example-try" onclick="tryExample(3)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">WRITE</span>(<span class="t-str">"db"</span>) <span class="t-op">//</span> <span class="t-atom">CACHE</span>(<span class="t-str">"redis"</span>)</div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 5</span><span class="example-desc">amplify — run health check 3 times sequentially</span><button class="example-try" onclick="tryExample(4)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">PING</span>(<span class="t-str">"health"</span>, <span class="t-num">1</span>) <span class="t-op">**</span> <span class="t-num">3</span></div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 6</span><span class="example-desc">compound — mark, parallel write/cache, then confirm</span><button class="example-try" onclick="tryExample(5)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">MARK</span>(<span class="t-str">"job-7"</span>, <span class="t-str">"running"</span>)
+  <span class="t-op">>></span> (<span class="t-atom">WRITE</span>(<span class="t-str">"db"</span>) <span class="t-op">//</span> <span class="t-atom">CACHE</span>(<span class="t-str">"redis"</span>))
+  <span class="t-op">>></span> <span class="t-atom">MARK</span>(<span class="t-str">"job-7"</span>, <span class="t-str">"done"</span>)</div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 7</span><span class="example-desc">fallback with chain — full sequence fallback</span><button class="example-try" onclick="tryExample(6)">Try in playground</button></div>
+          <div class="example-code">(<span class="t-atom">MARK</span>(<span class="t-str">"gpu-0"</span>, <span class="t-str">"running"</span>) <span class="t-op">>></span> <span class="t-atom">FETCH</span>(<span class="t-str">"inference"</span>))
+  <span class="t-op">|</span> (<span class="t-atom">MARK</span>(<span class="t-str">"gpu-1"</span>, <span class="t-str">"running"</span>) <span class="t-op">>></span> <span class="t-atom">FETCH</span>(<span class="t-str">"inference"</span>))</div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 8</span><span class="example-desc">precedence — ** binds tighter than // (A() // (B() ** 3))</span><button class="example-try" onclick="tryExample(7)">Try in playground</button></div>
+          <div class="example-code"><span class="t-atom">NOTIFY</span>(<span class="t-str">"a"</span>) <span class="t-op">//</span> <span class="t-atom">NOTIFY</span>(<span class="t-str">"b"</span>) <span class="t-op">**</span> <span class="t-num">3</span>
+<span class="t-comment">// parsed as: NOTIFY("a") // (NOTIFY("b") ** 3)</span></div>
+        </div>
+
+        <div class="example">
+          <div class="example-head"><span class="example-num">Example 9</span><span class="example-desc">nudge framework — shard document</span><button class="example-try" onclick="tryExample(8)">Try in playground</button></div>
+          <div class="example-code"><span class="t-kw">REGISTRY</span>(<span class="t-str">"nudge-framework"</span>, version=<span class="t-str">"0.1.0"</span>)
+  <span class="t-op">>></span> <span class="t-atom">SHARD</span>(<span class="t-str">"A1"</span>, phase=<span class="t-str">"A"</span>)
+  <span class="t-op">>></span> <span class="t-atom">ACCEPT</span>(<span class="t-str">"zero NotImplementedError"</span>)
+  <span class="t-op">>></span> <span class="t-atom">EXCLUDE</span>(<span class="t-str">"gif_writer.py"</span>)</div>
+        </div>
+      </section>
+
+      <section id="s12">
+        <h2>12. Simulator / CLI</h2>
+        <p>The nudgeDSL simulator takes existing agent output and produces the nudgeDSL equivalent, token comparison, inferred registry, and GBNF grammar.</p>
+        <div class="code-block">
+          <div class="code-block-bar"><span class="code-block-label">CLI usage</span></div>
+          <pre style="padding:0.9rem 1.2rem;font-size:0.78rem;line-height:1.7;color:var(--muted);">nudge analyze ./output.json
+nudge analyze ./output.py --format python
+nudge analyze --stdin
+
+# with custom registries (last-defined wins on conflicts)
+nudge analyze ./output.json --registry core.json --registry nudge.json
+nudge analyze ./output.json --registry ./atoms.json</pre>
+        </div>
+        <p><strong>Note:</strong> <code>savings_percent</code> is always net (output + amortized system prompt). Gross savings are not reported — they are misleading.</p>
+      </section>
+
+      <section id="s13">
+        <h2>13. Versioning</h2>
+        <p>This document is versioned. Breaking changes increment the minor version. The <code>version</code> field in every AST output references this spec version.</p>
+        <p>Agents and executors must agree on spec version. A mismatch is a runtime error, not a silent failure. Documents using <code>REGISTRY()</code> must declare the domain version — version mismatch returns <code>REGISTRY_MISMATCH</code> before any parsing occurs.</p>
+      </section>
+
+      <section id="s14">
+        <h2>14. What is not in v0.1</h2>
+        <p>These are explicitly out of scope. Do not implement them in v0.1 parsers.</p>
+        <ul>
+          <li>Variables or state references between atoms (<code>$result >> M($x, $y)</code>)</li>
+          <li>Conditional branching (<code>IF(cond) >> A() | B()</code>)</li>
+          <li>Loops with dynamic counts (<code>SHOOT() ** $n</code>)</li>
+          <li>Typed return values from atoms</li>
+          <li>Multi-agent addressing (<code>@agent1 >> M(3,7)</code>)</li>
+          <li>Streaming partial AST execution</li>
+          <li>Registry inheritance (<code>"extends"</code> field is reserved, must be empty array in v0.1)</li>
+          <li>Runtime registry merging beyond last-defined-wins</li>
+        </ul>
+      </section>
+
+      <section id="s15">
+        <h2>15. Registry system</h2>
+        <p>nudgeDSL separates the grammar (this spec) from the vocabulary (atom registries). The grammar never changes within a major version. The vocabulary is fully customizable per project.</p>
+        <h3>Three registry layers</h3>
+        <table class="spec-table">
+          <thead><tr><th>Layer</th><th>File</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Core</td><td><code>nudgedsl-core.json</code></td><td>Generic atoms usable in any domain (MARK, CREATE, NOTIFY...)</td></tr>
+            <tr><td>Domain</td><td><code>nudgedsl-{domain}.json</code></td><td>Atoms for a specific methodology (SHARD, PHASE, ACCEPT...)</td></tr>
+            <tr><td>Project</td><td><code>atoms.json</code></td><td>Project-specific atoms, lives next to shards</td></tr>
+          </tbody>
+        </table>
+        <h3>Composition rules</h3>
+        <ul>
+          <li><strong>No inheritance</strong> — include both files explicitly, no extends logic in v0.1</li>
+          <li><strong>Last-defined wins</strong> — on atom name conflicts, the last <code>--registry</code> flag wins silently</li>
+          <li><strong>Load-time conflict check</strong> — signature mismatches (same atom name, different arg count) produce a <code>RegistryError</code> at load time</li>
+          <li><strong>REGISTRY() is optional</strong> — if omitted, no domain/version check is performed</li>
+        </ul>
+      </section>
+
+      <p style="font-size:0.75rem;color:var(--muted);font-family:var(--mono);padding-top:2rem;border-top:1px solid var(--border);">nudgeDSL-spec-v0.1.0 — pre-build artifact. Implementation does not yet exist at time of writing.</p>
+
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+const SPEC_EXAMPLES = [
+  `MARK("task-42", "done")`,
+  `CREATE("report.pdf") >> NOTIFY("complete")`,
+  `FETCH("primary-db") | FETCH("replica-db")`,
+  `WRITE("db") // CACHE("redis")`,
+  `PING("health", 1) ** 3`,
+  `MARK("job-7", "running")\n  >> (WRITE("db") // CACHE("redis"))\n  >> MARK("job-7", "done")`,
+  `(MARK("gpu-0", "running") >> FETCH("inference"))\n  | (MARK("gpu-1", "running") >> FETCH("inference"))`,
+  `NOTIFY("a") // NOTIFY("b") ** 3`,
+  `REGISTRY("nudge-framework", version="0.1.0")\n  >> SHARD("A1", phase="A")\n  >> ACCEPT("zero NotImplementedError")\n  >> EXCLUDE("gif_writer.py")`
+];
+
+function tryExample(i) {
+  const url = `index.html#playground?example=${encodeURIComponent(SPEC_EXAMPLES[i])}`;
+  window.location.href = url;
+}
+
+// Sidebar active state on scroll
+const sections = document.querySelectorAll('.spec-content section[id]');
+const navLinks = document.querySelectorAll('.spec-nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  navLinks.forEach(a => { a.classList.toggle('active', a.getAttribute('href') === '#' + current); });
+});
+</script>
+</body>
+</html>

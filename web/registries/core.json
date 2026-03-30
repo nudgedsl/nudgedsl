@@ -1,0 +1,137 @@
+{
+  "domain": "nudgedsl-core",
+  "version": "0.1.0",
+  "description": "Generic atoms usable in any domain. No project-specific assumptions.",
+  "extends": [],
+  "atoms": [
+    {
+      "atom": "MARK",
+      "fn": "UpdateStatus",
+      "description": "Transition an item to a new status.",
+      "args": [
+        { "name": "id", "type": "string" },
+        { "name": "status", "type": "string", "enum": ["pending", "done", "skipped", "error", "blocked", "running"] }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "CREATE",
+      "fn": "RecordCreatedFile",
+      "description": "Record that a file was created at the given path.",
+      "args": [
+        { "name": "path", "type": "string" }
+      ],
+      "rollback": "DELETE"
+    },
+    {
+      "atom": "DELETE",
+      "fn": "RecordDeletedFile",
+      "description": "Record that a file was deleted.",
+      "args": [
+        { "name": "path", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "MOD",
+      "fn": "RecordModifiedFile",
+      "description": "Record that a file was modified.",
+      "args": [
+        { "name": "path", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "NOTE",
+      "fn": "AddDecisionNote",
+      "description": "Record a decision or observation as a locked note.",
+      "args": [
+        { "name": "text", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "FETCH",
+      "fn": "RetrieveData",
+      "description": "Retrieve data from a named source.",
+      "args": [
+        { "name": "source", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "NOTIFY",
+      "fn": "BroadcastEvent",
+      "description": "Broadcast a completion or alert event to a channel.",
+      "args": [
+        { "name": "channel", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "PING",
+      "fn": "HealthCheck",
+      "description": "Run a health check N times sequentially.",
+      "args": [
+        { "name": "target", "type": "string" },
+        { "name": "count", "type": "integer", "min": 1, "max": 100 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "LOCK",
+      "fn": "AcquireLock",
+      "description": "Acquire a named lock.",
+      "args": [
+        { "name": "resource", "type": "string" }
+      ],
+      "rollback": "UNLOCK"
+    },
+    {
+      "atom": "UNLOCK",
+      "fn": "ReleaseLock",
+      "description": "Release a named lock.",
+      "args": [
+        { "name": "resource", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "WRITE",
+      "fn": "WriteData",
+      "description": "Write data to a named target.",
+      "args": [
+        { "name": "target", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "CACHE",
+      "fn": "CacheData",
+      "description": "Cache data in a named store.",
+      "args": [
+        { "name": "store", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "EMIT",
+      "fn": "EmitEvent",
+      "description": "Emit a named event with an optional payload key.",
+      "args": [
+        { "name": "event", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "LOG",
+      "fn": "LogMessage",
+      "description": "Log a message at a given level.",
+      "args": [
+        { "name": "message", "type": "string" },
+        { "name": "level", "type": "string", "enum": ["info", "warn", "error", "debug"] }
+      ],
+      "rollback": null
+    }
+  ]
+}

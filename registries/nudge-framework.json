@@ -1,0 +1,256 @@
+{
+  "domain": "nudge-framework",
+  "version": "0.1.0",
+  "description": "Atoms for the Nudge Framework 5-stage AI development pipeline. Encodes blueprint, task list, shard, development, and verification artifacts as executable intent.",
+  "extends": ["nudgedsl-core"],
+  "atoms": [
+    {
+      "atom": "BLUEPRINT",
+      "fn": "InitBlueprint",
+      "description": "Open a new blueprint context for a project.",
+      "args": [
+        { "name": "id", "type": "string" },
+        { "name": "version", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "STACK",
+      "fn": "DeclareStack",
+      "description": "Declare a technology in the project stack.",
+      "args": [
+        { "name": "tech", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "RISK",
+      "fn": "RegisterRisk",
+      "description": "Register an architectural risk with a severity level.",
+      "args": [
+        { "name": "id", "type": "string" },
+        { "name": "severity", "type": "integer", "min": 1, "max": 3 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "CONSTRAINT",
+      "fn": "AddConstraint",
+      "description": "Declare a hard constraint on the project or phase.",
+      "args": [
+        { "name": "rule", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "TASK",
+      "fn": "RegisterTask",
+      "description": "Register a task in the task list.",
+      "args": [
+        { "name": "id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "PHASE",
+      "fn": "OpenPhase",
+      "description": "Open a named phase grouping.",
+      "args": [
+        { "name": "name", "type": "string" },
+        { "name": "desc", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "SHARD",
+      "fn": "OpenShard",
+      "description": "Open a shard specification context.",
+      "args": [
+        { "name": "id", "type": "string" },
+        { "name": "phase", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "SCOPE",
+      "fn": "AddScopeFile",
+      "description": "Add a file to the shard's read scope.",
+      "args": [
+        { "name": "file", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "ACCEPT",
+      "fn": "AddAcceptanceCriterion",
+      "description": "Add an acceptance criterion that must pass for the shard to be READY.",
+      "args": [
+        { "name": "criterion", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "EXCLUDE",
+      "fn": "AddExclusion",
+      "description": "Mark a file or concept as explicitly out of scope.",
+      "args": [
+        { "name": "target", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "TEST",
+      "fn": "RequireTest",
+      "description": "Name a specific test that must exist and pass.",
+      "args": [
+        { "name": "name", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "GATE",
+      "fn": "SetGate",
+      "description": "Set a hard gate — execution cannot proceed past this point until the condition is met.",
+      "args": [
+        { "name": "condition", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "STOP",
+      "fn": "SetStopCondition",
+      "description": "Set the stop condition for a phase — what the executor must output before stopping.",
+      "args": [
+        { "name": "message", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "DEPENDS",
+      "fn": "SetDependency",
+      "description": "Declare that this shard cannot start until the referenced shard is done.",
+      "args": [
+        { "name": "shard_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "NEXT",
+      "fn": "SetNextSlice",
+      "description": "Declare the next slice to execute after this one completes.",
+      "args": [
+        { "name": "id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "HANDOVER",
+      "fn": "TriggerHandover",
+      "description": "Trigger handover generation — produces .handover.md before session ends.",
+      "args": [
+        { "name": "next_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "CONTINUE",
+      "fn": "ContinueSession",
+      "description": "Continue current session into next slice — 60% file overlap rule met.",
+      "args": [
+        { "name": "next_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "RESTART",
+      "fn": "RestartSession",
+      "description": "End session, generate handover, new context for next slice.",
+      "args": [
+        { "name": "next_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "STALE",
+      "fn": "MarkShardStale",
+      "description": "Mark a shard as outdated — last commit is newer than the shard.",
+      "args": [
+        { "name": "shard_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "REGEN",
+      "fn": "TriggerShardRegen",
+      "description": "Trigger regeneration of a stale shard before downstream phases trust it.",
+      "args": [
+        { "name": "shard_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "VERIFY",
+      "fn": "OpenVerification",
+      "description": "Open a verification context for a shard.",
+      "args": [
+        { "name": "shard_id", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "RESULT",
+      "fn": "SetVerificationResult",
+      "description": "Set the final verdict of a verification pass.",
+      "args": [
+        { "name": "verdict", "type": "string", "enum": ["ready", "revision", "blocked"] }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "FLAG",
+      "fn": "RaiseFlag",
+      "description": "Raise a flag of a given type scoped to a file or component.",
+      "args": [
+        { "name": "type", "type": "string", "enum": ["regression", "out-of-scope", "blocker", "risk", "stale"] },
+        { "name": "scope", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "PROFILE",
+      "fn": "SetAIProfile",
+      "description": "Set the AI role profile for this session.",
+      "args": [
+        { "name": "role", "type": "string", "enum": ["critic", "analyst", "writer", "implementer", "auditor"] }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "AUTONOMY",
+      "fn": "SetAutonomyLevel",
+      "description": "Set the autonomy level for the current phase.",
+      "args": [
+        { "name": "level", "type": "string", "enum": ["high", "medium", "low", "zero"] }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "DRIFT",
+      "fn": "TriggerDriftCheck",
+      "description": "Trigger a drift check — verify contracts.yaml matches actual implementation.",
+      "args": [
+        { "name": "contract", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "TRUST",
+      "fn": "SetTrustSource",
+      "description": "Mark a source as trusted — do not re-verify during this session.",
+      "args": [
+        { "name": "source", "type": "string" }
+      ],
+      "rollback": null
+    }
+  ]
+}

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>nudgeDSL Registries — Browse and Download Atom Registries</title>
+<meta name="description" content="Browse and download nudgeDSL atom registries. Core atoms, Nudge Framework domain, game AI domain. Import into the playground or use with the CLI.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+<style>
+.page-header { padding: 7rem 5% 3rem; border-bottom: 1px solid var(--border); }
+.page-header p { font-size: 0.95rem; color: var(--muted); max-width: 560px; margin-top: 1rem; line-height: 1.8; }
+
+.registry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; padding: 3rem 5%; }
+.registry-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+.registry-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+.registry-card.featured { border-color: rgba(245,158,11,0.3); }
+.rc-head { padding: 1.5rem 1.5rem 1.2rem; border-bottom: 1px solid var(--border); }
+.rc-domain { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+.rc-name { font-family: var(--serif); font-size: 1.3rem; margin-bottom: 0.4rem; }
+.rc-version { font-family: var(--mono); font-size: 0.68rem; color: var(--amber); }
+.rc-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.6; margin-top: 0.75rem; }
+.rc-stats { display: flex; gap: 1.2rem; padding: 0.8rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--bg3); }
+.rc-stat { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+.rc-stat span { color: var(--text); }
+.rc-atoms { padding: 1rem 1.5rem; max-height: 260px; overflow-y: auto; }
+.atom-list { display: flex; flex-direction: column; gap: 6px; }
+.atom-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.atom-item:last-child { border-bottom: none; }
+.atom-code { font-family: var(--mono); font-size: 0.78rem; color: var(--amber); font-weight: 600; min-width: 80px; flex-shrink: 0; }
+.atom-fn { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-bottom: 2px; }
+.atom-desc { font-size: 0.77rem; color: var(--muted); line-height: 1.4; }
+.atom-args { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+.atom-arg { font-family: var(--mono); font-size: 0.63rem; background: var(--bg3); border: 1px solid var(--border); padding: 1px 5px; border-radius: 2px; color: var(--muted); }
+.atom-rollback { font-family: var(--mono); font-size: 0.63rem; background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.2); padding: 1px 5px; border-radius: 2px; color: var(--teal); }
+.rc-actions { padding: 1rem 1.5rem; display: flex; gap: 8px; border-top: 1px solid var(--border); }
+.rc-actions button { flex: 1; }
+
+.create-section { padding: 3rem 5%; background: var(--bg2); border-top: 1px solid var(--border); }
+.create-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+.create-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.create-card-head { padding: 1rem 1.2rem; background: var(--bg3); border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+.create-card pre { padding: 1rem 1.2rem; font-family: var(--mono); font-size: 0.76rem; line-height: 1.7; color: var(--muted); overflow-x: auto; }
+
+.validate-section { padding: 3rem 5%; border-top: 1px solid var(--border); }
+.validate-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-top: 2rem; }
+
+@media (max-width: 768px) {
+  .create-grid, .validate-wrap { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">nudge<span>DSL</span></a>
+  <div class="nav-links">
+    <span class="nav-site-label">Registries</span>
+    <a href="index.html">Protocol</a>
+    <a href="framework.html">Framework</a>
+    <a href="spec.html">Spec</a>
+    <a href="https://github.com/nudge/nudgedsl/tree/main/registries" target="_blank">GitHub</a>
+  </div>
+  <a class="btn-sm primary" href="index.html#playground">Playground</a>
+</nav>
+
+<div class="page-header">
+  <div class="section-label">Atom registries</div>
+  <h1 style="font-size:2.4rem;">Browse registries.</h1>
+  <p>Atom registries define the vocabulary for a nudgeDSL domain. Download one, import it into the playground, or use it with <code>nudge analyze --registry</code>. Contribute your own on GitHub.</p>
+</div>
+
+<div class="registry-grid" id="registry-grid">
+  <!-- populated by JS -->
+</div>
+
+<section class="create-section">
+  <div class="section-label">Create your own</div>
+  <h2>Define your domain's vocabulary.</h2>
+  <p class="lead">An atom registry is a JSON file following this schema. Start with 5–10 atoms. Use the playground to validate and generate prompts from it.</p>
+
+  <div class="create-grid">
+    <div class="create-card">
+      <div class="create-card-head">atoms.json — minimal example</div>
+      <pre>{
+  "domain": "my-project",
+  "version": "0.1.0",
+  "description": "Project-specific atoms.",
+  "extends": [],
+  "atoms": [
+    {
+      "atom": "MARK",
+      "fn": "UpdateStatus",
+      "description": "Transition an item status.",
+      "args": [
+        { "name": "id", "type": "string" },
+        { "name": "status", "type": "string",
+          "enum": ["done","pending","error"] }
+      ],
+      "rollback": null
+    }
+  ]
+}</pre>
+    </div>
+    <div class="create-card">
+      <div class="create-card-head">arg types and constraints</div>
+      <pre>// Supported arg types
+"type": "string"    // any string
+"type": "integer"   // whole number
+"type": "float"     // decimal number
+"type": "boolean"   // true or false
+"type": "null"      // explicit null
+
+// Constraints (optional)
+"enum": ["a","b","c"]   // allowed values
+"min": 0                // minimum (int/float)
+"max": 100              // maximum (int/float)
+"required": false       // default: true
+
+// Rollback (for compensating parallel)
+"rollback": "UNDO_ATOM" // must exist and
+                        // have same arg types</pre>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:1rem;margin-top:2rem;flex-wrap:wrap;">
+    <a class="btn-primary" href="index.html#playground">Test in playground</a>
+    <a class="btn-secondary" href="spec.html#s7">Read registry spec</a>
+    <a class="btn-secondary" href="https://github.com/nudge/nudgedsl/blob/main/CONTRIBUTING.md" target="_blank">Contribute a registry</a>
+  </div>
+</section>
+
+<section class="validate-section">
+  <div class="section-label">Quick validate</div>
+  <h2>Test a registry file here.</h2>
+  <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Paste your JSON or drag and drop a file. The validator checks the schema, rollback signatures, and warns about common mistakes.</p>
+  <div class="validate-wrap">
+    <div class="editor-pane">
+      <div class="editor-header">
+        <span class="editor-title">paste registry JSON</span>
+        <div class="editor-actions">
+          <label style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);cursor:pointer;">
+            <input type="file" accept=".json" onchange="loadFile(event)" style="display:none;">
+            load file
+          </label>
+          <button class="btn-sm primary" onclick="validateRegistry()">validate →</button>
+        </div>
+      </div>
+      <textarea class="code-input" id="reg-input" style="min-height:320px;" spellcheck="false" placeholder='{
+  "domain": "my-project",
+  "version": "0.1.0",
+  "atoms": [...]
+}'></textarea>
+    </div>
+    <div class="editor-pane">
+      <div class="editor-header">
+        <span class="editor-title">validation result</span>
+        <div class="editor-actions">
+          <button class="btn-sm" onclick="copyRegResult()">copy</button>
+        </div>
+      </div>
+      <div class="output-pane" id="reg-output" style="min-height:320px;"><span class="out-info">// Paste a registry JSON and click validate</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>nudgeDSL registries · <a href="index.html">Protocol</a> · <a href="https://github.com/nudge/nudgedsl" target="_blank">GitHub</a></div>
+  <div>Structure beats hope.</div>
+</footer>
+
+<script src="shared.js"></script>
+<script>
+const REGISTRIES = [
+  {
+    file: 'registries/core.json',
+    featured: false,
+    color: '#6b7280'
+  },
+  {
+    file: 'registries/nudge-framework.json',
+    featured: true,
+    color: '#f59e0b'
+  },
+  {
+    file: 'registries/game-ai.json',
+    featured: false,
+    color: '#8b5cf6'
+  }
+];
+
+async function loadRegistries() {
+  const grid = document.getElementById('registry-grid');
+  for (const r of REGISTRIES) {
+    try {
+      const res = await fetch(r.file);
+      const data = await res.json();
+      grid.innerHTML += renderCard(data, r);
+    } catch(e) {
+      console.error('Failed to load', r.file, e);
+    }
+  }
+}
+
+function renderCard(data, meta) {
+  const atoms = data.atoms || [];
+  const rollbacks = atoms.filter(a => a.rollback).length;
+  const atomsHtml = atoms.map(a => {
+    const args = (a.args || []).map(x => `<span class="atom-arg">${x.name}:${x.type}</span>`).join('');
+    const rb = a.rollback ? `<span class="atom-rollback">↩ ${a.rollback}</span>` : '';
+    return `<div class="atom-item">
+      <div>
+        <div class="atom-code">${a.atom}</div>
+        <div class="atom-fn">${a.fn}</div>
+      </div>
+      <div>
+        <div class="atom-desc">${a.description || ''}</div>
+        <div class="atom-args">${args}${rb}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="registry-card${meta.featured ? ' featured' : ''}">
+    <div class="rc-head" style="border-top:3px solid ${meta.color};">
+      <div class="rc-domain">${data.domain}</div>
+      <div class="rc-name">${formatDomain(data.domain)}</div>
+      <div class="rc-version">v${data.version}</div>
+      <div class="rc-desc">${data.description || ''}</div>
+    </div>
+    <div class="rc-stats">
+      <div class="rc-stat">Atoms: <span>${atoms.length}</span></div>
+      <div class="rc-stat">Rollbacks: <span>${rollbacks}</span></div>
+      <div class="rc-stat">Extends: <span>${(data.extends||[]).join(', ') || 'none'}</span></div>
+    </div>
+    <div class="rc-atoms">
+      <div class="atom-list">${atomsHtml}</div>
+    </div>
+    <div class="rc-actions">
+      <button class="btn-sm" onclick="downloadRegistry('${meta.file}', '${data.domain}')">Download JSON</button>
+      <button class="btn-sm primary" onclick="loadInPlayground('${meta.file}')">Open in playground</button>
+    </div>
+  </div>`;
+}
+
+function formatDomain(domain) {
+  return domain.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+async function downloadRegistry(file, domain) {
+  const res = await fetch(file);
+  const text = await res.text();
+  const blob = new Blob([text], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = domain + '.json';
+  a.click();
+}
+
+function loadInPlayground(file) {
+  window.location.href = `index.html#playground?registry=${encodeURIComponent(file)}`;
+}
+
+function loadFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById('reg-input').value = ev.target.result; };
+  reader.readAsText(file);
+}
+
+function validateRegistry() {
+  const input = document.getElementById('reg-input').value.trim();
+  const out = document.getElementById('reg-output');
+  if (!input) { out.innerHTML = '<span class="out-err">✗ Nothing to validate</span>'; return; }
+  try {
+    const data = JSON.parse(input);
+    const errors = [];
+    const warnings = [];
+    if (!data.domain) errors.push('Missing required field: "domain"');
+    if (!data.version) errors.push('Missing required field: "version"');
+    if (!Array.isArray(data.atoms)) errors.push('Missing required field: "atoms" (must be array)');
+    if (data.extends && data.extends.length > 0) warnings.push('"extends" is reserved and ignored in v0.1 — include parent registry explicitly');
+
+    const atoms = data.atoms || [];
+    const atomMap = {};
+    atoms.forEach(a => {
+      if (!a.atom) { errors.push(`Atom missing "atom" field`); return; }
+      if (!/^[A-Z][A-Z0-9]{0,2}$/.test(a.atom)) errors.push(`Atom "${a.atom}": code must be 1-3 uppercase letters/digits, starting with a letter`);
+      if (!a.fn) errors.push(`Atom "${a.atom}": missing "fn" field`);
+      if (!Array.isArray(a.args)) warnings.push(`Atom "${a.atom}": "args" should be an array (can be empty)`);
+      atomMap[a.atom] = a;
+    });
+
+    atoms.forEach(a => {
+      if (a.rollback) {
+        const rb = atomMap[a.rollback];
+        if (!rb) { errors.push(`Atom "${a.atom}": rollback "${a.rollback}" not found in registry`); return; }
+        const fwdLen = (a.args || []).length;
+        const rbLen = (rb.args || []).length;
+        if (fwdLen !== rbLen) errors.push(`Atom "${a.atom}": rollback "${a.rollback}" has ${rbLen} args, expected ${fwdLen} to match`);
+        else {
+          (a.args || []).forEach((arg, i) => {
+            if (rb.args[i].type !== arg.type) errors.push(`Atom "${a.atom}": rollback "${a.rollback}" arg[${i}] type mismatch — "${rb.args[i].type}" vs "${arg.type}"`);
+          });
+        }
+      }
+    });
+
+    if (errors.length > 0) {
+      out.innerHTML = `<span class="out-err">✗ ${errors.length} error(s)\n\n${errors.map(e=>'  ✗ '+e).join('\n')}</span>`;
+      if (warnings.length > 0) out.innerHTML += `\n\n<span class="out-info">${warnings.map(w=>'  ⚠ '+w).join('\n')}</span>`;
+    } else {
+      out.innerHTML = `<span class="out-ok">✓ Valid registry — "${data.domain}" v${data.version}</span>
+<span class="out-ok">  ${atoms.length} atoms · ${atoms.filter(a=>a.rollback).length} rollbacks</span>
+
+${warnings.length > 0 ? '<span class="out-info">' + warnings.map(w=>'⚠ '+w).join('\n') + '</span>\n\n' : ''}<span class="out-info">// Use in playground:
+//   Copy the registry and drop it on the registry tab
+//
+// Use in CLI:
+//   nudge analyze ./output.json --registry ./atoms.json</span>`;
+    }
+  } catch(e) {
+    out.innerHTML = `<span class="out-err">✗ Invalid JSON\n  ${e.message}</span>`;
+  }
+}
+
+function copyRegResult() {
+  const text = document.getElementById('reg-output').innerText;
+  navigator.clipboard.writeText(text);
+}
+
+loadRegistries();
+</script>
+</body>
+</html>

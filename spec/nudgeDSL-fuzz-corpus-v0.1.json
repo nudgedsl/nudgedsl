@@ -1,0 +1,521 @@
+{
+  "version": "0.1.0",
+  "description": "Fuzzing corpus for nudgeDSL parser. Every entry must produce a structured ParseError or ValidationError — never a panic, never a silent pass.",
+  "categories": [
+    "empty_input",
+    "truncated_input",
+    "missing_parens",
+    "trailing_operator",
+    "unknown_atom",
+    "bad_arg_type",
+    "bad_arg_count",
+    "unterminated_string",
+    "nested_paren_errors",
+    "operator_misuse",
+    "whitespace_variants",
+    "natural_language_bleed",
+    "valid_boundary"
+  ],
+  "cases": [
+
+    {
+      "id": "F001",
+      "category": "empty_input",
+      "input": "",
+      "expected_error": "ParseError",
+      "expected_code": "EMPTY_INPUT",
+      "note": "Fully empty string."
+    },
+    {
+      "id": "F002",
+      "category": "empty_input",
+      "input": "   ",
+      "expected_error": "ParseError",
+      "expected_code": "EMPTY_INPUT",
+      "note": "Whitespace only."
+    },
+    {
+      "id": "F003",
+      "category": "empty_input",
+      "input": "\n\n\t",
+      "expected_error": "ParseError",
+      "expected_code": "EMPTY_INPUT",
+      "note": "Newlines and tab only."
+    },
+
+    {
+      "id": "F004",
+      "category": "truncated_input",
+      "input": "MARK(",
+      "expected_error": "ParseError",
+      "expected_code": "TRUNCATED_INPUT",
+      "note": "Atom call opened, stream cut before args."
+    },
+    {
+      "id": "F005",
+      "category": "truncated_input",
+      "input": "MARK(\"task-1\"",
+      "expected_error": "ParseError",
+      "expected_code": "TRUNCATED_INPUT",
+      "note": "Arg present, closing paren missing — stream cut."
+    },
+    {
+      "id": "F006",
+      "category": "truncated_input",
+      "input": "MARK(\"task-1\", \"done\") >>",
+      "expected_error": "ParseError",
+      "expected_code": "TRAILING_OPERATOR",
+      "note": "Valid call followed by dangling chain operator."
+    },
+    {
+      "id": "F007",
+      "category": "truncated_input",
+      "input": "FETCH(\"db\") |",
+      "expected_error": "ParseError",
+      "expected_code": "TRAILING_OPERATOR",
+      "note": "Fallback operator with no right-hand side."
+    },
+    {
+      "id": "F008",
+      "category": "truncated_input",
+      "input": "FETCH(\"db\") //",
+      "expected_error": "ParseError",
+      "expected_code": "TRAILING_OPERATOR",
+      "note": "Parallel operator with no right-hand side."
+    },
+    {
+      "id": "F009",
+      "category": "truncated_input",
+      "input": "PING() **",
+      "expected_error": "ParseError",
+      "expected_code": "TRAILING_OPERATOR",
+      "note": "Amplify operator with no count."
+    },
+    {
+      "id": "F010",
+      "category": "truncated_input",
+      "input": "MARK(\"task-1\", \"do",
+      "expected_error": "ParseError",
+      "expected_code": "UNTERMINATED_STRING",
+      "note": "String opened but stream cut mid-value."
+    },
+
+    {
+      "id": "F011",
+      "category": "missing_parens",
+      "input": "MARK",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Atom with no parens at all."
+    },
+    {
+      "id": "F012",
+      "category": "missing_parens",
+      "input": "MARK \"task-1\"",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Atom followed by string without parens."
+    },
+    {
+      "id": "F013",
+      "category": "missing_parens",
+      "input": "MARK(\"task-1\" >> NOTIFY(\"ops\")",
+      "expected_error": "ParseError",
+      "expected_code": "MISSING_CLOSE_PAREN",
+      "note": "Closing paren replaced by operator."
+    },
+    {
+      "id": "F014",
+      "category": "missing_parens",
+      "input": "(MARK(\"task-1\", \"done\") >> NOTIFY(\"ops\")",
+      "expected_error": "ParseError",
+      "expected_code": "MISSING_CLOSE_PAREN",
+      "note": "Outer grouping paren never closed."
+    },
+    {
+      "id": "F015",
+      "category": "missing_parens",
+      "input": "MARK(\"task-1\", \"done\"))",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Extra closing paren after valid expression."
+    },
+
+    {
+      "id": "F016",
+      "category": "trailing_operator",
+      "input": ">> MARK(\"task-1\", \"done\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Chain operator at start of input."
+    },
+    {
+      "id": "F017",
+      "category": "trailing_operator",
+      "input": "| FETCH(\"db\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Fallback operator at start of input."
+    },
+    {
+      "id": "F018",
+      "category": "trailing_operator",
+      "input": "MARK(\"a\", \"done\") >> >> NOTIFY(\"ops\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Double chain operator."
+    },
+    {
+      "id": "F019",
+      "category": "trailing_operator",
+      "input": "MARK(\"a\", \"done\") >> | NOTIFY(\"ops\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Mixed operators without operand between them."
+    },
+
+    {
+      "id": "F020",
+      "category": "unknown_atom",
+      "input": "xyz(\"task-1\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNKNOWN_ATOM",
+      "note": "Lowercase atom — violates ATOM grammar rule."
+    },
+    {
+      "id": "F021",
+      "category": "unknown_atom",
+      "input": "mark(\"task-1\", \"done\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNKNOWN_ATOM",
+      "note": "Known atom name but lowercase."
+    },
+    {
+      "id": "F022",
+      "category": "unknown_atom",
+      "input": "MARK123456(\"task-1\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNKNOWN_ATOM",
+      "note": "Atom name exceeds 3-char limit defined in EBNF."
+    },
+    {
+      "id": "F023",
+      "category": "unknown_atom",
+      "input": "1MARK(\"task-1\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Atom starting with digit — invalid per EBNF."
+    },
+    {
+      "id": "F024",
+      "category": "unknown_atom",
+      "input": "_MARK(\"task-1\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Atom starting with underscore — invalid per EBNF."
+    },
+
+    {
+      "id": "F025",
+      "category": "bad_arg_type",
+      "input": "MARK(42, \"done\")",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_TYPE_MISMATCH",
+      "note": "First arg should be string, got integer. Requires registry: MARK(id:string, status:string)."
+    },
+    {
+      "id": "F026",
+      "category": "bad_arg_type",
+      "input": "MARK(\"task-1\", 99)",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_TYPE_MISMATCH",
+      "note": "Second arg should be string enum, got integer."
+    },
+    {
+      "id": "F027",
+      "category": "bad_arg_type",
+      "input": "MARK(true, \"done\")",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_TYPE_MISMATCH",
+      "note": "Boolean where string expected."
+    },
+    {
+      "id": "F028",
+      "category": "bad_arg_type",
+      "input": "MARK(null, \"done\")",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_TYPE_MISMATCH",
+      "note": "Null where non-nullable string expected."
+    },
+    {
+      "id": "F029",
+      "category": "bad_arg_type",
+      "input": "PING(\"not-a-number\")",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_TYPE_MISMATCH",
+      "note": "String where integer expected. Requires registry: PING(count:integer)."
+    },
+
+    {
+      "id": "F030",
+      "category": "bad_arg_count",
+      "input": "MARK()",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_COUNT_MISMATCH",
+      "note": "Zero args where 2 required."
+    },
+    {
+      "id": "F031",
+      "category": "bad_arg_count",
+      "input": "MARK(\"task-1\")",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_COUNT_MISMATCH",
+      "note": "One arg where 2 required."
+    },
+    {
+      "id": "F032",
+      "category": "bad_arg_count",
+      "input": "MARK(\"task-1\", \"done\", \"extra\")",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_COUNT_MISMATCH",
+      "note": "Three args where 2 expected."
+    },
+    {
+      "id": "F033",
+      "category": "bad_arg_count",
+      "input": "NOTIFY()",
+      "expected_error": "ValidationError",
+      "expected_code": "ARG_COUNT_MISMATCH",
+      "note": "Zero args where 1 required. Requires registry: NOTIFY(channel:string)."
+    },
+
+    {
+      "id": "F034",
+      "category": "unterminated_string",
+      "input": "MARK(\"task-1, \"done\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNTERMINATED_STRING",
+      "note": "First string not closed before comma."
+    },
+    {
+      "id": "F035",
+      "category": "unterminated_string",
+      "input": "NOTIFY(\"ops)",
+      "expected_error": "ParseError",
+      "expected_code": "UNTERMINATED_STRING",
+      "note": "String opened but closed by paren, not quote."
+    },
+    {
+      "id": "F036",
+      "category": "unterminated_string",
+      "input": "MARK(\"task-1\", \"done) >> NOTIFY(\"ops\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNTERMINATED_STRING",
+      "note": "Second arg string not closed — rest of expression consumed."
+    },
+
+    {
+      "id": "F037",
+      "category": "nested_paren_errors",
+      "input": "((MARK(\"task-1\", \"done\")))",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Double-wrapped grouping — extra outer parens not valid."
+    },
+    {
+      "id": "F038",
+      "category": "nested_paren_errors",
+      "input": "()",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Empty grouping parens."
+    },
+    {
+      "id": "F039",
+      "category": "nested_paren_errors",
+      "input": "(MARK(\"a\", \"done\") >> (NOTIFY(\"ops\") >> FETCH(\"db\")",
+      "expected_error": "ParseError",
+      "expected_code": "MISSING_CLOSE_PAREN",
+      "note": "Inner group closed, outer group never closed."
+    },
+
+    {
+      "id": "F040",
+      "category": "operator_misuse",
+      "input": "MARK(\"a\", \"done\") ** 0",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Amplify count of zero — grammar requires INTEGER >= 1."
+    },
+    {
+      "id": "F041",
+      "category": "operator_misuse",
+      "input": "MARK(\"a\", \"done\") ** -1",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Negative amplify count."
+    },
+    {
+      "id": "F042",
+      "category": "operator_misuse",
+      "input": "MARK(\"a\", \"done\") ** 2.5",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "Float amplify count — must be integer."
+    },
+    {
+      "id": "F043",
+      "category": "operator_misuse",
+      "input": "MARK(\"a\", \"done\") ** \"three\"",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "String amplify count."
+    },
+
+    {
+      "id": "F044",
+      "category": "whitespace_variants",
+      "input": "MARK  (\"task-1\", \"done\")",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "Whitespace between atom name and paren — parser should tolerate this."
+    },
+    {
+      "id": "F045",
+      "category": "whitespace_variants",
+      "input": "MARK(\"task-1\",\"done\")",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "No space after comma — valid."
+    },
+    {
+      "id": "F046",
+      "category": "whitespace_variants",
+      "input": "MARK( \"task-1\" , \"done\" )",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "Extra spaces around args — valid."
+    },
+    {
+      "id": "F047",
+      "category": "whitespace_variants",
+      "input": "MARK(\"task-1\", \"done\")\n>> NOTIFY(\"ops\")",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "Newline before operator — parser should tolerate."
+    },
+
+    {
+      "id": "F048",
+      "category": "natural_language_bleed",
+      "input": "Please mark task-1 as done.",
+      "expected_error": "ParseError",
+      "expected_code": "UNKNOWN_ATOM",
+      "note": "LLM outputs natural language instead of DSL. 'Please' is not a valid atom."
+    },
+    {
+      "id": "F049",
+      "category": "natural_language_bleed",
+      "input": "Sure! Here is the nudgeDSL: MARK(\"task-1\", \"done\")",
+      "expected_error": "ParseError",
+      "expected_code": "UNKNOWN_ATOM",
+      "note": "LLM preamble before valid DSL. Parser must reject — preamble is not an atom."
+    },
+    {
+      "id": "F050",
+      "category": "natural_language_bleed",
+      "input": "```nudgedsl\nMARK(\"task-1\", \"done\")\n```",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "LLM wraps output in markdown code fences. Parser must reject raw backticks."
+    },
+    {
+      "id": "F051",
+      "category": "natural_language_bleed",
+      "input": "MARK(\"task-1\", \"done\") // done",
+      "expected_error": "ParseError",
+      "expected_code": "UNKNOWN_ATOM",
+      "note": "'done' after parallel operator is not a registered atom — natural language bleed."
+    },
+    {
+      "id": "F052",
+      "category": "natural_language_bleed",
+      "input": "MARK(\"task-1\", \"done\") # update the index",
+      "expected_error": "ParseError",
+      "expected_code": "UNEXPECTED_TOKEN",
+      "note": "LLM appends a comment — no comment syntax in nudgeDSL v0.1."
+    },
+
+    {
+      "id": "F053",
+      "category": "valid_boundary",
+      "input": "MARK(\"a\", \"done\") ** 1",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "Amplify count of 1 — valid boundary, semantically a no-op but not an error."
+    },
+    {
+      "id": "F054",
+      "category": "valid_boundary",
+      "input": "FETCH(\"x\") | FETCH(\"x\")",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "Same atom on both sides of fallback — redundant but valid."
+    },
+    {
+      "id": "F055",
+      "category": "valid_boundary",
+      "input": "MARK(\"task-1\", \"skipped\")",
+      "expected_error": "VALID",
+      "expected_code": null,
+      "note": "Valid enum value — must pass semantic validation cleanly."
+    }
+  ],
+
+  "registry_for_validation_cases": {
+    "description": "Minimal atom registry required for ValidationError cases (F025-F033). ParseError cases do not require a registry.",
+    "atoms": [
+      {
+        "atom": "MARK",
+        "fn": "UpdateStatus",
+        "args": [
+          { "name": "id", "type": "string" },
+          { "name": "status", "type": "string", "enum": ["pending", "done", "skipped", "error"] }
+        ],
+        "rollback": null
+      },
+      {
+        "atom": "NOTIFY",
+        "fn": "BroadcastEvent",
+        "args": [
+          { "name": "channel", "type": "string" }
+        ],
+        "rollback": null
+      },
+      {
+        "atom": "FETCH",
+        "fn": "RetrieveData",
+        "args": [
+          { "name": "source", "type": "string" }
+        ],
+        "rollback": null
+      },
+      {
+        "atom": "PING",
+        "fn": "HealthCheck",
+        "args": [
+          { "name": "count", "type": "integer", "min": 1, "max": 100 }
+        ],
+        "rollback": null
+      }
+    ]
+  },
+
+  "parser_requirements": {
+    "no_panic": "Parser must never panic on any input in this corpus. Every case returns a structured error object.",
+    "error_position": "ParseError must include a position field indicating where in the input string the error was detected.",
+    "valid_cases": "Cases marked VALID must produce a correct JSON AST and zero errors.",
+    "validation_separation": "ValidationError cases (bad_arg_type, bad_arg_count) must first parse successfully to AST, then fail at the validator stage — not the parser stage.",
+    "error_message_quality": "Error messages must be actionable — they should indicate what was expected, what was received, and where."
+  }
+}

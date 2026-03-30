@@ -1,0 +1,143 @@
+{
+  "domain": "game-ai",
+  "version": "0.1.0",
+  "description": "Atoms for real-time game AI agents. Encodes unit actions, state transitions, and tactical decisions for both local edge inference (Jetson) and cloud AI directors.",
+  "extends": ["nudgedsl-core"],
+  "atoms": [
+    {
+      "atom": "SEL",
+      "fn": "SelectUnit",
+      "description": "Select a unit by name or ID as the active subject.",
+      "args": [
+        { "name": "unit", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "MOV",
+      "fn": "MoveUnit",
+      "description": "Move the selected unit to hex coordinates (x, y).",
+      "args": [
+        { "name": "x", "type": "integer", "min": 0, "max": 63 },
+        { "name": "y", "type": "integer", "min": 0, "max": 63 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "ATK",
+      "fn": "AttackTarget",
+      "description": "Attack a target unit.",
+      "args": [
+        { "name": "target", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "HEAL",
+      "fn": "HealUnit",
+      "description": "Heal a target unit by a percentage of max HP.",
+      "args": [
+        { "name": "target", "type": "string", "enum": ["self", "ally1", "ally2", "ally3"] },
+        { "name": "amount", "type": "float", "min": 0.0, "max": 1.0 }
+      ],
+      "rollback": "UNHEAL"
+    },
+    {
+      "atom": "UNHEAL",
+      "fn": "ReverseHeal",
+      "description": "Reverse a heal action (compensating rollback for HEAL).",
+      "args": [
+        { "name": "target", "type": "string", "enum": ["self", "ally1", "ally2", "ally3"] },
+        { "name": "amount", "type": "float", "min": 0.0, "max": 1.0 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "DEF",
+      "fn": "SetDefenseStance",
+      "description": "Set a unit to a defense stance.",
+      "args": [
+        { "name": "stance", "type": "string", "enum": ["shield", "overwatch", "cover", "prone"] }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "ABILITY",
+      "fn": "UseAbility",
+      "description": "Activate a named unit ability.",
+      "args": [
+        { "name": "name", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "WAIT",
+      "fn": "WaitTurns",
+      "description": "Skip N turns without action.",
+      "args": [
+        { "name": "turns", "type": "integer", "min": 1, "max": 10 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "STATE",
+      "fn": "MutateGameState",
+      "description": "Mutate a named game state variable to a new value.",
+      "args": [
+        { "name": "key", "type": "string" },
+        { "name": "value", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "CONF",
+      "fn": "AdjustConfidence",
+      "description": "Adjust an agent's confidence level by a delta (positive or negative).",
+      "args": [
+        { "name": "agent", "type": "string" },
+        { "name": "delta", "type": "integer", "min": -20, "max": 20 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "NARR",
+      "fn": "TriggerNarrative",
+      "description": "Trigger a named narrative event or dialogue.",
+      "args": [
+        { "name": "event", "type": "string" }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "SPAWN",
+      "fn": "SpawnUnit",
+      "description": "Spawn a unit at hex coordinates.",
+      "args": [
+        { "name": "unit_type", "type": "string" },
+        { "name": "x", "type": "integer", "min": 0, "max": 63 },
+        { "name": "y", "type": "integer", "min": 0, "max": 63 }
+      ],
+      "rollback": "DESPAWN"
+    },
+    {
+      "atom": "DESPAWN",
+      "fn": "DespawnUnit",
+      "description": "Remove a unit from the board (compensating rollback for SPAWN).",
+      "args": [
+        { "name": "unit_type", "type": "string" },
+        { "name": "x", "type": "integer", "min": 0, "max": 63 },
+        { "name": "y", "type": "integer", "min": 0, "max": 63 }
+      ],
+      "rollback": null
+    },
+    {
+      "atom": "TONE",
+      "fn": "SetAgentTone",
+      "description": "Set the dialogue tone for an agent's next response.",
+      "args": [
+        { "name": "tone", "type": "string", "enum": ["neutral", "positive", "tense", "hostile", "formal"] }
+      ],
+      "rollback": null
+    }
+  ]
+}
